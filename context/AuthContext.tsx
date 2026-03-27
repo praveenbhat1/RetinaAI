@@ -49,26 +49,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen to Firebase auth state
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+        if (!auth || !db) {
+            setLoading(false);
+            return;
+        }
+
+        const firebaseAuth = auth;
+        const firestore = db;
+
+        const unsubscribe = onAuthStateChanged(firebaseAuth, async (firebaseUser: FirebaseUser | null) => {
             if (firebaseUser) {
-                // Fetch role from Firestore
-                const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-                if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    setUser({
-                        uid: firebaseUser.uid,
-                        name: data.name || firebaseUser.displayName || "",
-                        email: firebaseUser.email || "",
-                        role: data.role as UserRole,
-                    });
-                } else {
-                    // User exists in Auth but not Firestore (edge case)
-                    setUser({
-                        uid: firebaseUser.uid,
-                        name: firebaseUser.displayName || "",
-                        email: firebaseUser.email || "",
-                        role: "patient",
-                    });
+                try {
+                    // Fetch role from Firestore
+                    const userDoc = await getDoc(doc(firestore, "users", firebaseUser.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        setUser({
+                            uid: firebaseUser.uid,
+                            name: data.name || firebaseUser.displayName || "",
+                            email: firebaseUser.email || "",
+                            role: data.role as UserRole,
+                        });
+                    } else {
+                        // User exists in Auth but not Firestore (edge case)
+                        setUser({
+                            uid: firebaseUser.uid,
+                            name: firebaseUser.displayName || "",
+                            email: firebaseUser.email || "",
+                            role: "patient",
+                        });
+                    }
+                } catch (err) {
+                    console.error("Auth initialization error:", err);
+                    setUser(null);
                 }
             } else {
                 setUser(null);
@@ -80,6 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const signup = async (name: string, email: string, password: string, role: "patient" | "doctor"): Promise<void> => {
+        if (!auth || !db) return;
+        
         // Create Firebase Auth account
         const credential = await createUserWithEmailAndPassword(auth, email, password);
         const firebaseUser = credential.user;
@@ -107,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const login = async (email: string, password: string): Promise<void> => {
-        if (!auth) {
+        if (!auth || !db) {
             throw new Error("Authentication service is not initialized.");
         }
 
@@ -145,12 +160,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = async (): Promise<void> => {
+        if (!auth) return;
         await signOut(auth);
         setUser(null);
     };
 
     const getPendingDoctors = async (): Promise<AuthUser[]> => {
-        const q = query(collection(db, "users"), where("role", "==", "pending_doctor"));
+        if (!db) return [];
+        const firestore = db;
+        const q = query(collection(firestore, "users"), where("role", "==", "pending_doctor"));
         const snapshot = await getDocs(q);
         return snapshot.docs.map(d => ({
             uid: d.id,
@@ -161,10 +179,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const approveDoctor = async (uid: string): Promise<void> => {
+        if (!db) return;
         await updateDoc(doc(db, "users", uid), { role: "doctor" });
     };
 
     const rejectDoctor = async (uid: string): Promise<void> => {
+        if (!db) return;
         await updateDoc(doc(db, "users", uid), { role: "patient" });
     };
 

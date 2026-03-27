@@ -12,9 +12,16 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase only once
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Initialize Firebase only once and only if we have an API key (prevents build errors)
+let app;
+if (getApps().length === 0) {
+    if (firebaseConfig.apiKey) {
+        app = initializeApp(firebaseConfig);
+    }
+} else {
+    app = getApps()[0];
+}
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
 export default app;
