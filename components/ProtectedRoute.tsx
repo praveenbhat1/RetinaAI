@@ -46,5 +46,13 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
     if (!user) return null;
 
+    if (user.role === "pending_doctor") {
+        // Only allow access to the pending page itself
+        if (typeof window !== "undefined" && window.location.pathname !== "/pending") {
+             router.push("/pending");
+             return null;
+        }
+    }
+
     return <>{children}</>;
 }
