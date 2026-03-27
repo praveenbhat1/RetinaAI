@@ -40,7 +40,9 @@ export default function LoginPage() {
             case "auth/invalid-credential": return "Invalid email or password. Please try again.";
             case "auth/network-request-failed": return "Network error. Please check your connection.";
             case "auth/user-disabled": return "This account has been disabled.";
-            default: return `Sign in failed (${code || "unknown error"}). Please try again.`;
+            default: 
+                if (code.includes("FB_INIT_MISSING")) return "Configuration error: Firebase keys are missing in the browser environment.";
+                return `Sign in failed (${code || "unknown error"}). Please try again.`;
         }
     };
 

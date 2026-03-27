@@ -12,16 +12,22 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase only once and only if we have an API key (prevents build errors)
+// Initialize Firebase only once
 let app;
+const isBrowser = typeof window !== "undefined";
+const hasKey = !!firebaseConfig.apiKey;
+
 if (getApps().length === 0) {
-    if (firebaseConfig.apiKey) {
+    // Only initialize if we have a key OR if we are in the browser (where we expect a key)
+    if (hasKey) {
         app = initializeApp(firebaseConfig);
+    } else if (isBrowser) {
+        console.error("Firebase API Key is missing. Check your .env.local or platform environment variables.");
     }
 } else {
     app = getApps()[0];
 }
 
-export const auth = app ? getAuth(app) : null;
-export const db = app ? getFirestore(app) : null;
+export const auth = app ? getAuth(app) : (null as any);
+export const db = app ? getFirestore(app) : (null as any);
 export default app;

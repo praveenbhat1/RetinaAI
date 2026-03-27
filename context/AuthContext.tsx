@@ -123,7 +123,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = async (email: string, password: string): Promise<void> => {
         if (!auth || !db) {
-            throw new Error("Authentication service is not initialized.");
+            console.error("Authentication check failed: auth =", auth, "db =", db);
+            throw new Error("FB_INIT_MISSING: Firebase services are not available. Please verify your environment variables (NEXT_PUBLIC_FIREBASE_API_KEY).");
         }
 
         try {
