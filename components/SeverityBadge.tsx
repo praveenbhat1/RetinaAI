@@ -15,22 +15,29 @@ export default function SeverityBadge({
     className?: string;
 }) {
     const styles = {
-        "No DR": "bg-emerald-50 text-emerald-700 border-emerald-200/50 shadow-emerald-500/10",
-        "Mild": "bg-blue-50 text-blue-700 border-blue-200/50 shadow-blue-500/10",
-        "Moderate": "bg-amber-50 text-amber-700 border-amber-200/50 shadow-amber-500/10",
-        "Severe": "bg-orange-50 text-orange-700 border-orange-200/50 shadow-orange-500/10",
-        "Proliferative": "bg-rose-50 text-rose-700 border-rose-200/50 shadow-rose-500/10"
+        "No DR": "bg-slate-50 text-slate-600 border-slate-200",
+        "Mild": "bg-slate-50 text-slate-800 border-slate-200",
+        "Moderate": "bg-slate-900 text-white border-slate-800",
+        "Severe": "bg-slate-900 text-slate-100 border-slate-800",
+        "Proliferative": "bg-red-50 text-red-900 border-red-200"
+    };
+
+    const labels = {
+        "No DR": "STAT_NORMAL",
+        "Mild": "STAT_PO_MILD",
+        "Moderate": "STAT_PO_MOD",
+        "Severe": "STAT_PO_SEV",
+        "Proliferative": "STAT_URGENT"
     };
 
     return (
-        <span className={cn("px-4 py-1.5 rounded-full text-xs font-bold border shadow-sm inline-flex items-center gap-2", styles[severity], className)}>
-            <span className={cn("w-2 h-2 rounded-full animate-pulse",
-                severity === "No DR" ? "bg-emerald-500" :
-                    severity === "Mild" ? "bg-blue-500" :
-                        severity === "Moderate" ? "bg-amber-500" :
-                            severity === "Severe" ? "bg-orange-500" : "bg-rose-500"
+        <span className={cn("px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold border shadow-sm inline-flex items-center gap-2 uppercase tracking-widest", styles[severity], className)}>
+            <div className={cn("w-1.5 h-1.5 rounded-full",
+                severity === "No DR" ? "bg-slate-400" :
+                    severity === "Moderate" ? "bg-slate-100" :
+                        severity === "Proliferative" ? "bg-red-500 animate-pulse" : "bg-slate-600"
             )} />
-            {severity}
+            {labels[severity]}
         </span>
     );
 }

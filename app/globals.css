@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @theme inline {
+  --font-sans: var(--font-outfit);
+  --font-mono: var(--font-mono);
   --color-primary: #2563eb;
   --color-secondary: #14b8a6;
   --color-background: #f8fafc;
@@ -10,11 +12,64 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --secondary: #14b8a6;
+  --shadow-blue: rgba(37, 99, 235, 0.12);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(135deg, #2563eb, #14b8a6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass card utility */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Slow spin animation for scanning effect */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Connector line animation */
+@keyframes dash {
+  to { stroke-dashoffset: -20; }
+}

@@ -2,6 +2,7 @@ import HeroSection from '@/components/HeroSection';
 import TrustSection from '@/components/TrustSection';
 import FeatureCards from '@/components/FeatureCards';
 import HowItWorks from '@/components/HowItWorks';
+import InteractiveDemo from '@/components/InteractiveDemo';
 import CtaSection from '@/components/CtaSection';
 
 export default function Home() {
@@ -11,6 +12,7 @@ export default function Home() {
       <TrustSection />
       <FeatureCards />
       <HowItWorks />
+      <InteractiveDemo />
       <CtaSection />
     </>
   );

@@ -26,11 +26,11 @@ export default function NeuralNetworkAnimation() {
                 onHover: { enable: true, mode: "grab" },
             },
             modes: {
-                grab: { distance: 200, links: { opacity: 0.8, color: "#2563EB" } },
+                grab: { distance: 200, links: { opacity: 0.8, color: "#94a3b8" } }, // Slate 400
             },
         },
         particles: {
-            color: { value: ["#2563EB", "#14B8A6"] }, // Mix of Blue and Teal
+            color: { value: ["#94a3b8", "#cbd5e1"] }, // Mix of Slate 400 and 300
             links: {
                 color: "#94a3b8", // Slate 400
                 distance: 130,

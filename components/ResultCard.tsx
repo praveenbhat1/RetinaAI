@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AlertCircle, CheckCircle2, ChevronRight, ActivitySquare, ShieldCheck } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronRight, ActivitySquare, ShieldCheck, Download, Share2, Printer } from "lucide-react";
 import SeverityBadge, { SeverityType } from "./SeverityBadge";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function ResultCard({
     prediction = "Moderate",
@@ -19,79 +20,146 @@ export default function ResultCard({
     const circumference = normalizedRadius * 2 * Math.PI;
     const strokeDashoffset = circumference - (confidence / 100) * circumference;
 
+    const [copied, setCopied] = useState(false);
+    const scanId = `RX-73685`;
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({ title: "RetinaAI Report", text: `Scan ${scanId} — ${prediction} (${confidence}%)`, url: window.location.href });
+        } else {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            });
+        }
+    };
+
+    const handlePrint = () => window.print();
+
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="w-full max-w-4xl mx-auto rounded-3xl p-1 bg-gradient-to-br from-white/50 to-slate-200/50 backdrop-blur-xl border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.08)] mt-12 overflow-hidden relative"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-4xl mx-auto rounded-2xl p-[1px] bg-slate-200 shadow-2xl shadow-slate-900/10 mt-12 overflow-hidden relative font-body"
         >
-            <div className="bg-white/30 backdrop-blur-2xl rounded-[1.4rem] overflow-hidden relative z-10 flex flex-col">
+            {/* HUD Corner Markers */}
+            <div className="absolute top-2 left-2 text-[10px] font-mono text-slate-300 pointer-events-none">[ + ]</div>
+            <div className="absolute top-2 right-2 text-[10px] font-mono text-slate-300 pointer-events-none">[ + ]</div>
+            <div className="absolute bottom-2 left-2 text-[10px] font-mono text-slate-300 pointer-events-none">[ + ]</div>
+            <div className="absolute bottom-2 right-2 text-[10px] font-mono text-slate-300 pointer-events-none">[ + ]</div>
 
-                <div className="p-8 md:p-12 pb-8 border-b border-white/40 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
-                    <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />
-                    <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-cyan-400/10 rounded-full blur-[80px] pointer-events-none" />
-
-                    <div className="flex-1 text-center md:text-left relative z-10">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 border border-white box-shadow-sm text-slate-500 font-bold text-xs uppercase tracking-widest mb-4">
-                            <ShieldCheck className="w-4 h-4 text-emerald-500" /> Medical Grade Diagnostic
+            <div className="bg-white rounded-[calc(1rem-1px)] overflow-hidden relative z-10 flex flex-col">
+                {/* Header Section */}
+                <div className="p-8 md:p-12 border-b border-slate-100 flex flex-col md:flex-row items-center justify-between gap-10">
+                    <div className="flex-1 text-center md:text-left">
+                        <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 font-mono font-bold text-[10px] uppercase tracking-widest mb-6">
+                            <ShieldCheck className="w-3.5 h-3.5 text-slate-900" /> SECURE_CLINICAL_REPORT
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight flex flex-col gap-2">
-                            Neural Network Classification
-                            <span className="text-xl font-bold text-slate-500">Scan ID: #RX-{Math.floor(Math.random() * 90000) + 10000}</span>
+                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight leading-tight mb-4 uppercase">
+                            NEURAL_CLASSIFICATION_MAP
+                            <span className="block text-sm font-mono font-bold text-slate-400 mt-2 tracking-widest">SCAN_ID: [ {scanId} ]</span>
                         </h2>
                     </div>
 
-                    <div className="flex flex-col items-center justify-center p-6 bg-white/60 backdrop-blur-md rounded-3xl border border-white/80 shadow-lg relative z-10">
-                        <h3 className="text-sm text-slate-500 font-bold uppercase tracking-widest mb-4">CNN Confidence</h3>
-                        <div className="relative w-36 h-36 flex items-center justify-center">
-                            <svg height="144" width="144" className="rotate-[-90deg] drop-shadow-lg">
-                                <circle stroke="rgba(255,255,255,0.5)" fill="transparent" strokeWidth={stroke} r={normalizedRadius} cx="72" cy="72" />
+                    {/* Confidence HUD Gauge */}
+                    <div className="flex flex-col items-center justify-center p-8 bg-slate-50 border border-slate-100 rounded-2xl shadow-sm min-w-[200px]">
+                        <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">CERTAINTY_INDEX</span>
+                        <div className="relative w-32 h-32 flex items-center justify-center">
+                            <svg height="128" width="128" className="rotate-[-90deg]">
+                                <circle stroke="#f1f5f9" fill="transparent" strokeWidth={6} r={normalizedRadius} cx="64" cy="64" />
                                 <motion.circle
                                     initial={{ strokeDashoffset: circumference }}
                                     animate={{ strokeDashoffset }}
                                     transition={{ duration: 1.5, ease: "easeOut" }}
-                                    stroke={isHealthy ? "#10b981" : "#2563eb"} // emerald or primary
+                                    stroke="#0f172a"
                                     fill="transparent"
-                                    strokeWidth={stroke}
-                                    strokeLinecap="round"
+                                    strokeWidth={6}
+                                    strokeLinecap="square"
                                     strokeDasharray={circumference + " " + circumference}
                                     r={normalizedRadius}
-                                    cx="72"
-                                    cy="72"
+                                    cx="64"
+                                    cy="64"
                                 />
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-4xl font-extrabold text-slate-900 tracking-tighter drop-shadow-md">{confidence}<span className="text-xl text-slate-400">%</span></span>
+                                <span className="text-3xl font-mono font-bold text-slate-900 tracking-tighter tabular-nums">{confidence}%</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="p-8 md:p-12 pt-8 flex flex-col gap-8">
-                    <div className="bg-white/40 p-8 rounded-3xl border border-white/60 shadow-inner flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-                        <div className="flex-1">
-                            <h4 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Severity</h4>
-                            <div className="text-5xl font-extrabold text-slate-900 mb-4">{prediction}</div>
-                            <SeverityBadge severity={prediction} className="text-base px-6 py-2.5" />
+                {/* Report Body */}
+                <div className="p-8 md:p-12 flex flex-col gap-8">
+                    {/* Diagnostic Summary Terminal */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-1 shadow-sm border border-slate-100 rounded-xl overflow-hidden">
+                        <div className="bg-slate-50 p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-slate-100">
+                            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest mb-3">CLASSIFICATION:</span>
+                            <div className="text-4xl font-bold text-slate-900 mb-4 tracking-tighter uppercase">{prediction}</div>
+                            <SeverityBadge severity={prediction} />
                         </div>
-                        <div className="hidden md:block w-px h-32 bg-slate-300 rounded-full" />
-                        <div className="flex-[2]">
-                            <h4 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2 md:justify-start justify-center"><ActivitySquare className="w-5 h-5 text-primary" /> Pathology Insights</h4>
-                            <p className="text-lg text-slate-700 leading-relaxed font-medium">
+                        <div className="bg-white p-8 md:col-span-2">
+                            <div className="flex items-center gap-2 mb-4">
+                                <ActivitySquare className="w-4 h-4 text-slate-900" />
+                                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">PATHOLOGY_INSIGHTS_LOG:</span>
+                            </div>
+                            <p className="text-sm text-slate-900 leading-relaxed font-mono">
+                                <span className="text-slate-300 mr-2 opacity-50">&gt;&gt;</span>
                                 {isHealthy
-                                    ? "The neural map highlights robust macular architecture. Vascular networks exhibit typical bifurcation integrity devoid of aneurysmal swellings."
-                                    : `The inference grid actively highlights vascular lesions highly correlated with ${prediction.toLowerCase()} retinopathy parameters. Exudates and microaneurysms detected.`}
+                                    ? "NEURAL_MAP HIGHLIGHTS ROBUST MACULAR ARCHITECTURE. VASCULAR NETWORKS EXHIBIT TYPICAL BIFURCATION INTEGRITY. NO ANEURYSMAL SWELLINGS DETECTED."
+                                    : `INFERENCE_GRID ACTIVELY HIGHLIGHTS VASCULAR LESIONS HIGHLY CORRELATED WITH ${prediction.toUpperCase()} RETINOPATHY PARAMETERS. EXUDATES AND MICROANEURYSMS DETECTED.`}
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-4">
-                        <p className="text-xs text-slate-500 font-bold max-w-sm uppercase tracking-widest leading-relaxed">
-                            * Always solicit ophthalmologic review prior to clinical decisions.
-                        </p>
-                        <Link href="/dashboard" className="w-full sm:w-auto px-8 py-4 flex items-center justify-center gap-2 text-white bg-slate-900 font-bold rounded-full hover:bg-slate-800 transition shadow-xl sm:shadow-2xl hover:-translate-y-1">
-                            Process New Image <ChevronRight className="w-5 h-5" />
+                    {/* Technical Protocols (Recommendations) */}
+                    <div className="flex flex-col gap-4">
+                        <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-[0.2em]">CLINICAL_PROTOCOLS:</span>
+                        <div className="flex flex-wrap gap-2">
+                            {isHealthy ? (
+                                <>
+                                    <span className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
+                                        <CheckCircle2 className="w-3.5 h-3.5" /> [ SEQ_ANNUAL_FOLLOWUP ]
+                                    </span>
+                                    <span className="px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
+                                        <CheckCircle2 className="w-3.5 h-3.5" /> [ INTERVENTION_NOT_REQUIRED ]
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-900 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
+                                        <AlertCircle className="w-3.5 h-3.5" /> [ REFER_OPHTHALMOLOGY ]
+                                    </span>
+                                    <span className="px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-white font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
+                                        <AlertCircle className="w-3.5 h-3.5" /> [ 3_MONTH_INTERVAL ]
+                                    </span>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Report Footer / Actions */}
+                    <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="flex items-center gap-4 text-slate-300">
+                            {[Download, Share2, Printer].map((Icon, i) => (
+                                <button
+                                    key={i}
+                                    onClick={i === 0 ? handlePrint : i === 1 ? handleShare : handlePrint}
+                                    className="p-3 rounded-xl border border-slate-100 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition active:scale-95 shadow-sm"
+                                >
+                                    <Icon className="w-4 h-4" />
+                                </button>
+                            ))}
+                            <span className="h-4 w-px bg-slate-100 mx-2" />
+                            <p className="text-[9px] font-mono font-bold uppercase tracking-widest max-w-[200px] leading-tight opacity-60">
+                                * VERIFY VIA CLINICAL_REVIEW PRIOR TO DECISION_SEQUENCE
+                            </p>
+                        </div>
+
+                        <Link
+                            href="/dashboard"
+                            className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white font-mono font-bold text-[11px] uppercase tracking-[0.2em] rounded-xl shadow-2xl hover:bg-slate-800 transition active:scale-95"
+                        >
+                            <span className="animate-pulse">_</span> START_NEW_ANALYSIS <ChevronRight className="w-4 h-4 ml-1" />
                         </Link>
                     </div>
                 </div>
