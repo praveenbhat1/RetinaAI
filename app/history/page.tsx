@@ -15,10 +15,10 @@ export default function HistoryPage() {
         <ProtectedRoute>
             <div className="flex-1 bg-white py-24 px-6 relative overflow-hidden min-h-screen font-body">
                 {/* HUD Blueprint Grid */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-                    style={{ backgroundImage: `linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)`, backgroundSize: '40px 40px' }} 
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{ backgroundImage: `linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)`, backgroundSize: '40px 40px' }}
                 />
-                
+
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60vh] bg-gradient-to-b from-slate-50 to-transparent pointer-events-none" />
 
                 <div className="container mx-auto max-w-6xl relative z-10">
@@ -46,7 +46,7 @@ export default function HistoryPage() {
                         <div className="absolute -top-4 -right-4 w-10 h-10 border-t-2 border-r-2 border-slate-200 rounded-tr-xl pointer-events-none" />
                         <div className="absolute -bottom-4 -left-4 w-10 h-10 border-b-2 border-l-2 border-slate-200 rounded-bl-xl pointer-events-none" />
                         <div className="absolute -bottom-4 -right-4 w-10 h-10 border-b-2 border-r-2 border-slate-200 rounded-br-xl pointer-events-none" />
-                        
+
                         <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl shadow-slate-900/5 overflow-hidden">
                             <HistoryTable />
                         </div>

@@ -13,7 +13,7 @@ export default function CtaSection() {
 
             <div className="container mx-auto px-6 relative z-10">
                 <div className="max-w-4xl mx-auto text-center space-y-10">
-                    
+
                     {/* Diagnostic Badge */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -63,7 +63,7 @@ export default function CtaSection() {
                         >
                             Start Screening <ChevronRight className="w-4 h-4" />
                         </Link>
-                        
+
                         <div className="flex items-center gap-8">
                             <div className="flex flex-col items-start gap-1">
                                 <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">
@@ -77,7 +77,7 @@ export default function CtaSection() {
                                 <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">
                                     <Cpu className="w-3 h-3" />
                                     Engine
-                                    </div>
+                                </div>
                                 <span className="text-xs font-bold text-slate-300 font-mono tracking-tight">STABLE_V4</span>
                             </div>
                         </div>

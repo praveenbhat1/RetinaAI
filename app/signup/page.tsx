@@ -18,12 +18,18 @@ export default function SignupPage() {
     const router = useRouter();
     const { signup } = useAuth();
 
-    const getFirebaseErrorMessage = (code: string): string => {
+    const getFirebaseErrorMessage = (err: any): string => {
+        const code = err?.code || "";
+        const message = err?.message || "";
+
         switch (code) {
             case "auth/email-already-in-use": return "An account with this email already exists.";
             case "auth/weak-password": return "Password is too weak. Use at least 6 characters.";
             case "auth/invalid-email": return "Please enter a valid email address.";
-            default: return "Account creation failed. Please try again.";
+            case "FB_INIT_MISSING": return "Configuration error: Firebase keys are missing in the browser environment.";
+            default: 
+                if (message.includes("FB_INIT_MISSING")) return "Configuration error: Firebase keys are missing in the browser environment.";
+                return `Account creation failed (${code || "unknown error"}). Please try again.`;
         }
     };
 
@@ -58,9 +64,9 @@ export default function SignupPage() {
                 }
             }, 100);
         } catch (err: any) {
+            console.error("Signup error details:", err);
             setLoading(false);
-            const code = err?.code || "";
-            setAuthError(getFirebaseErrorMessage(code));
+            setAuthError(getFirebaseErrorMessage(err));
         }
     };
 

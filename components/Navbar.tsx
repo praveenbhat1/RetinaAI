@@ -28,16 +28,20 @@ export default function Navbar() {
     };
 
     const links = [
-        { href: "/", label: " Home" },
-        ...(user ? [{ href: "/dashboard", label: "Neural Engine" }] : []),
-        ...(user && (user.role === "doctor" || user.role === "admin")
-            ? [{ href: "/history", label: "Clinical Records" }]
-            : user?.role === "patient"
-                ? [{ href: "/history", label: "My Scans" }]
-                : []),
-        ...(user?.role === "admin" ? [{ href: "/admin", label: "System Admin" }] : []),
-        { href: "/about", label: "Protocol" },
-        { href: "/ethics", label: "AI_Policy" },
+        { href: "/", label: "Home" },
+        ...(user?.role === "admin" 
+            ? [{ href: "/dashboard", label: "Engine" }] 
+            : user ? [{ href: "/dashboard", label: "Neural Engine" }] : []),
+        ...(user?.role === "admin"
+            ? [{ href: "/history", label: "Records" }]
+            : user && (user.role === "doctor")
+                ? [{ href: "/history", label: "Clinical Records" }]
+                : user?.role === "patient"
+                    ? [{ href: "/history", label: "My Scans" }]
+                    : []),
+        ...(user?.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
+        { href: "/about", label: user?.role === "admin" ? "Info" : "Protocol" },
+        { href: "/ethics", label: user?.role === "admin" ? "Policy" : "AI Policy" },
     ];
 
     const roleBadge = user?.role === "admin" ? "ADMIN" : user?.role === "doctor" ? "DOCTOR" : user?.role === "pending_doctor" ? "PENDING" : null;

@@ -81,8 +81,8 @@ export default function HeroSection() {
                                 <Link href="/dashboard" className="px-10 py-5 text-base text-white bg-slate-900 font-semibold rounded-2xl hover:bg-slate-800 transition-all shadow-2xl shadow-slate-900/10 group flex items-center justify-center gap-4 active:scale-[0.98]">
                                     Initialize Screening <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </Link>
-                                <Link 
-                                    href="#demo" 
+                                <Link
+                                    href="#demo"
                                     className="px-10 py-5 text-base text-slate-600 bg-slate-50 font-semibold rounded-2xl hover:bg-slate-100 transition-all border border-slate-200 group flex items-center justify-center gap-4 active:scale-[0.98]"
                                 >
                                     Show Demo <Target className="w-4 h-4 group-hover:rotate-12 transition-transform" />

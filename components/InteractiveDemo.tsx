@@ -45,7 +45,7 @@ export default function InteractiveDemo() {
 
     return (
         <section className="py-24 relative overflow-hidden bg-white" id="demo">
-            
+
 
             <div className="container mx-auto px-6 relative z-10">
                 <motion.div

@@ -17,15 +17,28 @@ let app;
 const isBrowser = typeof window !== "undefined";
 const hasKey = !!firebaseConfig.apiKey;
 
+if (isBrowser) {
+    console.log("Firebase Init: Checking configuration...", {
+        hasApiKey: !!firebaseConfig.apiKey,
+        projectId: firebaseConfig.projectId,
+        authDomain: firebaseConfig.authDomain
+    });
+}
+
 if (getApps().length === 0) {
-    // Only initialize if we have a key OR if we are in the browser (where we expect a key)
     if (hasKey) {
-        app = initializeApp(firebaseConfig);
+        try {
+            app = initializeApp(firebaseConfig);
+            if (isBrowser) console.log("Firebase Init: Success");
+        } catch (err) {
+            if (isBrowser) console.error("Firebase Init: Failed to initializeApp", err);
+        }
     } else if (isBrowser) {
-        console.error("Firebase API Key is missing. Check your .env.local or platform environment variables.");
+        console.error("Firebase Init: API Key is missing. Check your .env.local or platform environment variables.");
     }
 } else {
     app = getApps()[0];
+    if (isBrowser) console.log("Firebase Init: Using existing app instance");
 }
 
 export const auth = app ? getAuth(app) : (null as any);

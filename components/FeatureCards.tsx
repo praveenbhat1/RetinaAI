@@ -71,7 +71,7 @@ export default function FeatureCards() {
                                     <span className="text-[8px] font-mono text-slate-400 font-bold uppercase tracking-widest">Active_Node_{idx + 1}</span>
                                 </div>
                             </div>
-                            
+
                             {/* Decorative corner accent */}
                             <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-30 transition-opacity">
                                 <div className="w-4 h-4 border-t-2 border-r-2 border-slate-900 rounded-tr-sm" />

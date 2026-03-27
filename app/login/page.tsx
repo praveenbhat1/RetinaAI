@@ -31,7 +31,10 @@ export default function LoginPage() {
         }
     }, [success, user, router]);
 
-    const getFirebaseErrorMessage = (code: string): string => {
+    const getFirebaseErrorMessage = (err: any): string => {
+        const code = err?.code || "";
+        const message = err?.message || "";
+        
         switch (code) {
             case "auth/user-not-found": return "No account found with this email.";
             case "auth/wrong-password": return "Incorrect password. Please try again.";
@@ -40,8 +43,9 @@ export default function LoginPage() {
             case "auth/invalid-credential": return "Invalid email or password. Please try again.";
             case "auth/network-request-failed": return "Network error. Please check your connection.";
             case "auth/user-disabled": return "This account has been disabled.";
+            case "FB_INIT_MISSING": return "Configuration error: Firebase keys are missing in the browser environment.";
             default: 
-                if (code.includes("FB_INIT_MISSING")) return "Configuration error: Firebase keys are missing in the browser environment.";
+                if (message.includes("FB_INIT_MISSING")) return "Configuration error: Firebase keys are missing in the browser environment.";
                 return `Sign in failed (${code || "unknown error"}). Please try again.`;
         }
     };
@@ -57,10 +61,9 @@ export default function LoginPage() {
             setLoading(false);
             setSuccess(true);
         } catch (err: any) {
-            console.error("Login error:", err);
+            console.error("Login error details:", err);
             setLoading(false);
-            const code = err?.code || "";
-            setAuthError(getFirebaseErrorMessage(code));
+            setAuthError(getFirebaseErrorMessage(err));
         }
     };
 

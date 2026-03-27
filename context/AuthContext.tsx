@@ -93,7 +93,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const signup = async (name: string, email: string, password: string, role: "patient" | "doctor"): Promise<void> => {
-        if (!auth || !db) return;
+        if (!auth || !db) {
+            const err = new Error("FB_INIT_MISSING: Firebase services are not available. Please verify your environment variables (NEXT_PUBLIC_FIREBASE_API_KEY).");
+            (err as any).code = "FB_INIT_MISSING";
+            throw err;
+        }
         
         // Create Firebase Auth account
         const credential = await createUserWithEmailAndPassword(auth, email, password);
@@ -124,7 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = async (email: string, password: string): Promise<void> => {
         if (!auth || !db) {
             console.error("Authentication check failed: auth =", auth, "db =", db);
-            throw new Error("FB_INIT_MISSING: Firebase services are not available. Please verify your environment variables (NEXT_PUBLIC_FIREBASE_API_KEY).");
+            const err = new Error("FB_INIT_MISSING: Firebase services are not available. Please verify your environment variables (NEXT_PUBLIC_FIREBASE_API_KEY).");
+            (err as any).code = "FB_INIT_MISSING";
+            throw err;
         }
 
         try {

@@ -23,10 +23,10 @@ export default function DashboardPage() {
         <ProtectedRoute>
             <div className="flex-1 bg-white py-24 px-6 relative overflow-hidden min-h-screen font-body">
                 {/* HUD Blueprint Grid Archive Effect */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-                    style={{ backgroundImage: `linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)`, backgroundSize: '40px 40px' }} 
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{ backgroundImage: `linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)`, backgroundSize: '40px 40px' }}
                 />
-                
+
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[60vh] bg-gradient-to-b from-slate-50 to-transparent pointer-events-none" />
 
                 <div className="container mx-auto max-w-6xl relative z-10">
@@ -69,7 +69,7 @@ export default function DashboardPage() {
                                         <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-900 transition-transform group-hover:scale-110">
                                             <Icon className="w-4 h-4" />
                                         </div>
-                                        <span className="text-[10px] font-mono text-slate-300">0{i+1}</span>
+                                        <span className="text-[10px] font-mono text-slate-300">0{i + 1}</span>
                                     </div>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 font-mono">{stat.label}</p>
                                     <p className="text-xl font-bold text-slate-900 font-mono tracking-tighter">{stat.value}</p>
@@ -85,7 +85,7 @@ export default function DashboardPage() {
                         <div className="absolute -top-4 -right-4 w-8 h-8 border-t-2 border-r-2 border-slate-200 rounded-tr-xl pointer-events-none" />
                         <div className="absolute -bottom-4 -left-4 w-8 h-8 border-b-2 border-l-2 border-slate-200 rounded-bl-xl pointer-events-none" />
                         <div className="absolute -bottom-4 -right-4 w-8 h-8 border-b-2 border-r-2 border-slate-200 rounded-br-xl pointer-events-none" />
-                        
+
                         <UploadCard />
                     </div>
 

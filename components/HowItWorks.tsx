@@ -5,24 +5,24 @@ import { motion } from "framer-motion";
 
 export default function HowItWorks() {
     const steps = [
-        { 
-            step: "PROTOCOL_01", 
-            icon: Upload, 
-            title: "Data Acquisition", 
+        {
+            step: "PROTOCOL_01",
+            icon: Upload,
+            title: "Data Acquisition",
             desc: "Secure intake of standardized fundus photographs via encrypted transmission layer.",
             status: "INPUT_READY"
         },
-        { 
-            step: "PROTOCOL_02", 
-            icon: Cpu, 
-            title: "Neural Inference", 
+        {
+            step: "PROTOCOL_02",
+            icon: Cpu,
+            title: "Neural Inference",
             desc: "CNN ensemble analysis detecting microaneurysms, hemorrhages, and exudates.",
             status: "PROCESSING"
         },
-        { 
-            step: "PROTOCOL_03", 
-            icon: FileCheck, 
-            title: "Abnormality Grading", 
+        {
+            step: "PROTOCOL_03",
+            icon: FileCheck,
+            title: "Abnormality Grading",
             desc: "Final severity classification mapped to clinical diagnostic standards (DR-0 to DR-4).",
             status: "OUTPUT_FINAL"
         }
