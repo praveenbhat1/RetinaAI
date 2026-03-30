@@ -15,28 +15,32 @@ export default function SeverityBadge({
     className?: string;
 }) {
     const styles = {
-        "No DR": "bg-slate-50 text-slate-600 border-slate-200",
-        "Mild": "bg-slate-50 text-slate-800 border-slate-200",
-        "Moderate": "bg-slate-900 text-white border-slate-800",
-        "Severe": "bg-slate-900 text-slate-100 border-slate-800",
-        "Proliferative": "bg-red-50 text-red-900 border-red-200"
+        "No DR": "bg-emerald-50 text-emerald-700 border-emerald-200",
+        "Mild": "bg-blue-50 text-blue-700 border-blue-200",
+        "Moderate": "bg-amber-50 text-amber-700 border-amber-200",
+        "Severe": "bg-orange-50 text-orange-700 border-orange-200",
+        "Proliferative": "bg-red-50 text-red-700 border-red-200"
     };
 
     const labels = {
-        "No DR": "STAT_NORMAL",
-        "Mild": "STAT_PO_MILD",
-        "Moderate": "STAT_PO_MOD",
-        "Severe": "STAT_PO_SEV",
-        "Proliferative": "STAT_URGENT"
+        "No DR": "No Risk",
+        "Mild": "Low Risk",
+        "Moderate": "Medium Risk",
+        "Severe": "High Risk",
+        "Proliferative": "Critical Risk"
+    };
+
+    const dotStyles = {
+        "No DR": "bg-emerald-500",
+        "Mild": "bg-blue-500",
+        "Moderate": "bg-amber-500",
+        "Severe": "bg-orange-500",
+        "Proliferative": "bg-red-500 animate-pulse"
     };
 
     return (
         <span className={cn("px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold border shadow-sm inline-flex items-center gap-2 uppercase tracking-widest", styles[severity], className)}>
-            <div className={cn("w-1.5 h-1.5 rounded-full",
-                severity === "No DR" ? "bg-slate-400" :
-                    severity === "Moderate" ? "bg-slate-100" :
-                        severity === "Proliferative" ? "bg-red-500 animate-pulse" : "bg-slate-600"
-            )} />
+            <div className={cn("w-1.5 h-1.5 rounded-full", dotStyles[severity])} />
             {labels[severity]}
         </span>
     );

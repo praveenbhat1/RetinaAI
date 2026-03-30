@@ -97,7 +97,7 @@ export default function SignupPage() {
                                 <Activity className="w-5 h-5 text-slate-900" />
                             </div>
                             <span className="text-xl font-bold text-slate-900 tracking-tight">
-                                Retina<span className="text-slate-900">AI</span>
+                                Retinova
                             </span>
                         </div>
 
@@ -142,7 +142,7 @@ export default function SignupPage() {
 
                             <div className="mb-6">
                                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-1">Create your account</h1>
-                                <p className="text-slate-500 text-sm">Get started with RetinaAI screening</p>
+                                <p className="text-slate-500 text-sm">Get started with Retinova screening</p>
                             </div>
 
                             {/* Role Selection */}

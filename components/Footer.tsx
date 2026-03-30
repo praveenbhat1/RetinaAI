@@ -9,7 +9,7 @@ export default function Footer() {
         <footer className="border-t border-slate-100 bg-white pt-24 pb-12 overflow-hidden relative selection:bg-slate-200">
             {/* Subtle technical background detail */}
             <div className="absolute right-0 bottom-0 p-10 opacity-[0.02] pointer-events-none select-none">
-                <div className="text-[10rem] font-bold font-mono leading-none tracking-tighter">RETINA_SYSTEM</div>
+                <div className="text-[10rem] font-bold font-mono leading-none tracking-tighter">RETINOVA_SYSTEM</div>
             </div>
 
             <div className="container mx-auto px-6 relative z-10">
@@ -20,7 +20,7 @@ export default function Footer() {
                                 <Activity className="h-5 w-5 text-white" />
                             </div>
                             <span className="text-2xl font-bold text-slate-900 tracking-tight">
-                                Retina<span className="font-light italic text-slate-400">AI</span>
+                                Retinova
                             </span>
                         </div>
                         <p className="text-slate-500 text-sm max-w-sm leading-relaxed font-medium">
@@ -65,7 +65,7 @@ export default function Footer() {
                 <div className="pt-10 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-6">
                         <p className="text-[10px] font-bold text-slate-400 font-mono tracking-widest leading-none">
-                            &copy; {new Date().getFullYear()} RETINA_AI_SYSTEMS
+                            &copy; {new Date().getFullYear()} RETINOVA_SYSTEMS
                         </p>
                         <div className="h-4 w-px bg-slate-200" />
                         <span className="text-[10px] font-bold text-slate-300 font-mono tracking-widest leading-none uppercase">

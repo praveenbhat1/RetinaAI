@@ -13,7 +13,7 @@ const mono = IBM_Plex_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'RetinaAI — Clinical-Grade Retinal Abnormality Detection',
+  title: 'Retinova — Clinical-Grade Retinal Abnormality Detection',
   description: 'AI-powered retinal abnormality detection using deep learning. Detect diabetic retinopathy with 99.4% accuracy.',
 }
 

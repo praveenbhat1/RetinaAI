@@ -89,7 +89,7 @@ export default function LoginPage() {
                                 <Activity className="w-5 h-5 text-slate-900" />
                             </div>
                             <span className="text-xl font-bold text-slate-900 tracking-tight">
-                                Retina<span className="text-slate-900">AI</span>
+                                Retinova
                             </span>
                         </div>
 
@@ -201,7 +201,7 @@ export default function LoginPage() {
 
                             <div className="mt-6 pt-6 border-t border-slate-100">
                                 <p className="text-center text-sm text-slate-500">
-                                    New to RetinaAI?{" "}
+                                    New to Retinova?{" "}
                                     <Link href="/signup" className="text-slate-900 font-semibold hover:text-blue-700 transition-colors">Create an account</Link>
                                 </p>
                             </div>

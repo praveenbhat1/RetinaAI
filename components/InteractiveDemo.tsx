@@ -77,20 +77,10 @@ export default function InteractiveDemo() {
 
                             {/* Simulated fundus display */}
                             <div className="relative w-full aspect-video rounded-2xl bg-slate-900 overflow-hidden mb-6">
-                                {/* Fake retina visual */}
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-64 h-64 md:w-80 md:h-80 rounded-full bg-gradient-to-br from-orange-900 via-orange-700 to-red-900 relative shadow-2xl">
-                                        {/* Optic disc */}
-                                        <div className="absolute top-1/2 left-[45%] -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-gradient-to-br from-yellow-200 to-orange-300 shadow-inner" />
-                                        {/* Vessels */}
-                                        <div className="absolute inset-0 rounded-full overflow-hidden opacity-60">
-                                            <div className="absolute top-1/2 left-[45%] w-[120%] h-0.5 bg-red-800 -translate-x-1/2 rotate-12" />
-                                            <div className="absolute top-1/2 left-[45%] w-[100%] h-0.5 bg-red-800 -translate-x-1/2 -rotate-15" />
-                                            <div className="absolute top-1/2 left-[45%] w-[90%] h-0.5 bg-red-800/80 -translate-x-1/2 rotate-35" />
-                                            <div className="absolute top-1/2 left-[45%] w-[80%] h-0.5 bg-red-800/70 -translate-x-1/2 -rotate-30" />
-                                        </div>
-                                        {/* Macula */}
-                                        <div className="absolute top-1/2 left-[55%] -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-orange-950/60" />
+                                {/* Real Retina Camera Image */}
+                                <div className="absolute inset-0 flex items-center justify-center p-4">
+                                    <div className="w-64 h-64 md:w-80 md:h-80 relative rounded-full overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+                                        <img src="/fundus-demo.png" alt="Clinical Fundus Representation" className="absolute inset-0 w-full h-full object-cover hover:scale-[1.05] transition-transform duration-1000" />
                                     </div>
                                 </div>
 

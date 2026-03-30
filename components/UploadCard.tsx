@@ -4,12 +4,14 @@ import { useState } from "react";
 import { UploadCloud, ScanLine, Loader2, Sparkles, CheckCircle2, X, AlertCircle, FileWarning } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { collection, addDoc } from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
 
 const ANALYSIS_STEPS = [
-    { label: "Extracting retinal features…", duration: 900 },
-    { label: "Analyzing CNN layers…", duration: 1100 },
-    { label: "Detecting abnormalities…", duration: 1200 },
-    { label: "Generating diagnostic report…", duration: 800 },
+    { label: "Extracting retinal features…", duration: 400 },
+    { label: "Analyzing CNN layers…", duration: 600 },
+    { label: "Detecting abnormalities…", duration: 550 },
+    { label: "Generating diagnostic report…", duration: 350 },
 ];
 
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/tiff", "image/bmp"];
@@ -68,6 +70,26 @@ export default function UploadCard() {
         setStepIndex(0);
         setCompletedSteps([]);
 
+        // Start API request concurrently with animation
+        const formData = new FormData();
+        formData.append("file", file);
+
+        let apiResult: any = null;
+        let apiError = false;
+
+        fetch("http://localhost:8000/predict", {
+            method: "POST",
+            body: formData
+        }).then(res => {
+            if (!res.ok) throw new Error("API Route Failed");
+            return res.json();
+        }).then(data => {
+            apiResult = data;
+        }).catch(err => {
+            console.error(err);
+            apiError = true;
+        });
+
         let elapsed = 0;
         const total = ANALYSIS_STEPS.reduce((s, st) => s + st.duration, 0);
 
@@ -88,11 +110,33 @@ export default function UploadCard() {
             elapsed += 50;
             const pct = Math.min(Math.round((elapsed / total) * 100), 99);
             setProgress(pct);
+            
+            // Try to finish once elapsed reaches total time
             if (elapsed >= total) {
-                clearInterval(interval);
-                setProgress(100);
-                setCompletedSteps([0, 1, 2, 3]);
-                setTimeout(() => router.push("/result"), 400);
+                if (apiError) {
+                    clearInterval(interval);
+                    setIsAnalyzing(false);
+                    setError("Failed to connect to diagnostic engine. Is the backend running?");
+                } else if (apiResult) {
+                    clearInterval(interval);
+                    setProgress(100);
+                    setCompletedSteps([0, 1, 2, 3]);
+                    const scanId = `SCN-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+                    
+                    if (auth.currentUser) {
+                        addDoc(collection(db, "predictions"), {
+                            userId: auth.currentUser.uid,
+                            prediction: apiResult.prediction,
+                            confidence: apiResult.confidence,
+                            scanId: scanId,
+                            timestamp: new Date()
+                        }).catch(console.error);
+                    }
+
+                    // Navigate to Result Page with API properties
+                    setTimeout(() => router.push(`/result?prediction=${apiResult.prediction}&confidence=${apiResult.confidence}&scanId=${scanId}`), 400);
+                }
+                // If API is just slow, progress stops at 99% until apiError or apiResult is set
             }
         }, 50);
     };
