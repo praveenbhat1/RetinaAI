@@ -6,3 +6,4 @@ tensorflow-cpu==2.15.0
 python-multipart==0.0.6
 setuptools==65.5.0
 wheel
+h5py==3.9.0
