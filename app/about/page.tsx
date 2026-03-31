@@ -43,10 +43,10 @@ export default function AboutPage() {
                         </div>
                     </motion.div>
                     <motion.h1 {...fadeUp(0.1)} className="text-4xl md:text-7xl font-bold text-slate-900 tracking-tight mb-8 leading-tight">
-                        Advancing <span className="text-slate-400 font-light italic">Retinova</span> Diagnostics
+                        Advancing <span className="text-slate-400 font-light italic">Retinex</span> Diagnostics
                     </motion.h1>
                     <motion.p {...fadeUp(0.2)} className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium">
-                        Retinova leverages high-precision convolutional neural networks trained on clinical fundus datasets to enable early, autonomous detection of diabetic retinopathy.
+                        Retinex leverages high-precision convolutional neural networks trained on clinical fundus datasets to enable early, autonomous detection of diabetic retinopathy.
                     </motion.p>
                 </div>
             </section>
@@ -78,7 +78,7 @@ export default function AboutPage() {
                                 Clinical-Grade Screening <span className="text-slate-400 font-light italic">for</span> Everyone
                             </h2>
                             <p className="text-slate-500 text-lg leading-relaxed mb-8 font-medium">
-                                Retinova bridges the specialist gap by providing an AI-powered screening architecture deployable in any clinical node — delivering expert-level analysis in seconds.
+                                Retinex bridges the specialist gap by providing an AI-powered screening architecture deployable in any clinical node — delivering expert-level analysis in seconds.
                             </p>
                             <Link href="/dashboard" className="inline-flex items-center gap-4 px-8 py-4 bg-slate-900 text-white font-mono font-bold text-[11px] uppercase tracking-[0.2em] rounded-xl shadow-2xl hover:bg-slate-800 transition active:scale-95">
                                 INITIALIZE_PLAYBOOK <ArrowRight className="w-4 h-4" />

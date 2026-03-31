@@ -16,7 +16,7 @@ const PRINCIPLES = [
     {
         icon: ShieldAlert,
         title: "AI Is Not a Final Diagnosis",
-        content: "Retinova provides AI-generated screening suggestions, not definitive medical diagnoses. All outputs must be reviewed and confirmed by a qualified ophthalmologist or retinal specialist before any clinical decisions are made. The system is intended to assist — never replace — the clinical judgment of licensed medical professionals.",
+        content: "Retinex provides AI-generated screening suggestions, not definitive medical diagnoses. All outputs must be reviewed and confirmed by a qualified ophthalmologist or retinal specialist before any clinical decisions are made. The system is intended to assist — never replace — the clinical judgment of licensed medical professionals.",
         accent: "border-red-200 bg-red-50/30",
         iconBg: "from-red-500 to-red-700",
     },
@@ -44,7 +44,7 @@ const PRINCIPLES = [
     {
         icon: FileWarning,
         title: "Regulatory Disclaimer",
-        content: "Retinova is currently a research and screening tool and is not approved by the FDA, CE, or any other regulatory body as a standalone medical device for clinical diagnosis. It should only be used as an adjunct screening aid within the scope of clinical research, educational demonstrations, or preliminary screening workflows under the supervision of qualified healthcare providers.",
+        content: "Retinex is currently a research and screening tool and is not approved by the FDA, CE, or any other regulatory body as a standalone medical device for clinical diagnosis. It should only be used as an adjunct screening aid within the scope of clinical research, educational demonstrations, or preliminary screening workflows under the supervision of qualified healthcare providers.",
         accent: "border-purple-200 bg-purple-50/30",
         iconBg: "from-purple-500 to-purple-700",
     },
@@ -93,7 +93,7 @@ export default function EthicsPage() {
                         <div>
                             <h3 className="font-bold text-red-800 mb-1 text-sm">Critical Notice</h3>
                             <p className="text-red-700 text-sm leading-relaxed">
-                                <strong>Retinova does not provide medical diagnoses.</strong> All AI-generated screening results are probabilistic assessments and must be confirmed by a qualified medical professional. Never make treatment decisions based solely on AI screening outputs.
+                                <strong>Retinex does not provide medical diagnoses.</strong> All AI-generated screening results are probabilistic assessments and must be confirmed by a qualified medical professional. Never make treatment decisions based solely on AI screening outputs.
                             </p>
                         </div>
                     </motion.div>
@@ -163,7 +163,7 @@ export default function EthicsPage() {
                         <p className="text-sm text-slate-600 mb-6">We are committed to full transparency. Reach out to our team for any inquiries regarding our AI practices.</p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                             <Link href="/about" className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg text-sm">
-                                About Retinova
+                                About Retinex
                             </Link>
                             <Link href="/dashboard" className="px-6 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition text-sm">
                                 Try the Platform

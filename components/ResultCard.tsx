@@ -26,7 +26,7 @@ export default function ResultCard({
 
     const handleShare = () => {
         if (navigator.share) {
-            navigator.share({ title: "Retinova Report", text: `Scan ${scanId} — ${prediction} (${confidence}%)`, url: window.location.href });
+            navigator.share({ title: "Retinex Report", text: `Scan ${scanId} — ${prediction} (${confidence}%)`, url: window.location.href });
         } else {
             navigator.clipboard.writeText(window.location.href).then(() => {
                 setCopied(true);

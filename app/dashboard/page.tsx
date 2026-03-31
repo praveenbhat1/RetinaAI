@@ -92,7 +92,7 @@ export default function DashboardPage() {
                     {/* System Index Footer */}
                     <div className="mt-20 pt-8 border-t border-slate-100 flex justify-between items-center opacity-40 font-mono">
                         <span className="text-[10px] text-slate-400 uppercase tracking-widest">SESSION_QUERY: ACTIVE</span>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-widest">RETINOVA_SYSTEM_DIAGNOSTICS_ENABLED</span>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-widest">RETINEX_SYSTEM_DIAGNOSTICS_ENABLED</span>
                     </div>
                 </div>
             </div>

@@ -32,7 +32,7 @@ export default function HowItWorks() {
         <section className="py-24 bg-slate-50 border-y border-slate-100 relative overflow-hidden selection:bg-slate-200">
             {/* Technical Background Details */}
             <div className="absolute top-0 right-0 p-10 opacity-[0.03] pointer-events-none">
-                <div className="text-[12rem] font-bold font-mono leading-none tracking-tighter">RETINOVA</div>
+                <div className="text-[12rem] font-bold font-mono leading-none tracking-tighter">RETINEX</div>
             </div>
 
             <div className="container mx-auto px-6 relative z-10">

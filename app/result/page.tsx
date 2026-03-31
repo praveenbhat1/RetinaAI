@@ -90,7 +90,7 @@ function ResultContent() {
                     {/* System Index Footer */}
                     <div className="max-w-4xl mx-auto mt-20 pt-8 border-t border-slate-100 flex justify-between items-center opacity-40 font-mono">
                         <span className="text-[10px] text-slate-400 uppercase tracking-widest">SESSION_QUERY: ARCHIVED</span>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-widest">RETINOVA_ANALYTICS_ENABLED</span>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-widest">RETINEX_ANALYTICS_ENABLED</span>
                     </div>
                 </div>
             </div>

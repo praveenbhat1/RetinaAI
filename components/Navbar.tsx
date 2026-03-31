@@ -61,7 +61,7 @@ export default function Navbar() {
                         </div>
                         <div className="flex flex-col">
                             <span className="text-xl font-bold text-slate-900 tracking-tight leading-none">
-                                Retinova
+                                Retinex
                             </span>
                             <span className="text-[9px] font-mono font-bold text-slate-400 tracking-[0.2em] mt-1 uppercase">
                                 [ SYS_v4.2.0 ]
