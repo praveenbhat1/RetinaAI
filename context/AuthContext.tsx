@@ -23,6 +23,14 @@ import {
 
 export type UserRole = "patient" | "doctor" | "pending_doctor" | "admin";
 
+export interface DoctorProfileData {
+    licenseNumber: string;
+    practiceType: "hospital" | "clinic" | "both" | "";
+    hospitalName: string;
+    clinicName: string;
+    specialization: string;
+}
+
 export interface AuthUser {
     uid: string;
     name: string;
@@ -34,7 +42,7 @@ interface AuthContextType {
     user: AuthUser | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<void>;
-    signup: (name: string, email: string, password: string, role: "patient" | "doctor") => Promise<void>;
+    signup: (name: string, email: string, password: string, role: "patient" | "doctor", doctorData?: DoctorProfileData) => Promise<void>;
     logout: () => Promise<void>;
     getPendingDoctors: () => Promise<AuthUser[]>;
     approveDoctor: (uid: string) => Promise<void>;
@@ -92,13 +100,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => unsubscribe();
     }, []);
 
-    const signup = async (name: string, email: string, password: string, role: "patient" | "doctor"): Promise<void> => {
+    const signup = async (name: string, email: string, password: string, role: "patient" | "doctor", doctorData?: DoctorProfileData): Promise<void> => {
         if (!auth || !db) {
             const err = new Error("FB_INIT_MISSING: Firebase services are not available. Please verify your environment variables (NEXT_PUBLIC_FIREBASE_API_KEY).");
             (err as any).code = "FB_INIT_MISSING";
             throw err;
         }
-        
+
         // Create Firebase Auth account
         const credential = await createUserWithEmailAndPassword(auth, email, password);
         const firebaseUser = credential.user;
@@ -109,13 +117,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Determine role: doctor → pending_doctor until admin approves
         const assignedRole: UserRole = role === "doctor" ? "pending_doctor" : "patient";
 
-        // Store user data in Firestore
-        await setDoc(doc(db, "users", firebaseUser.uid), {
+        // Build Firestore document — include doctor fields if applicable
+        const userData: Record<string, any> = {
             name,
             email,
             role: assignedRole,
+            status: role === "doctor" ? "pending" : "active",
             createdAt: new Date().toISOString(),
-        });
+        };
+
+        if (role === "doctor" && doctorData) {
+            userData.licenseNumber = doctorData.licenseNumber;
+            userData.practiceType = doctorData.practiceType;
+            userData.hospitalName = doctorData.hospitalName;
+            userData.clinicName = doctorData.clinicName;
+            userData.specialization = doctorData.specialization;
+        }
+
+        await setDoc(doc(db, "users", firebaseUser.uid), userData);
 
         setUser({
             uid: firebaseUser.uid,
