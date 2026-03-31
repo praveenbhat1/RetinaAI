@@ -15,8 +15,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# load model
-model = tf.keras.models.load_model("model/retina_model.h5", compile=False)
+# Custom InputLayer to handle version differences in saved models
+class CompatInputLayer(tf.keras.layers.InputLayer):
+    def __init__(self, **kwargs):
+        # 'batch_shape' is an alias for 'input_shape' in older TF versions
+        if 'batch_shape' in kwargs:
+            kwargs['input_shape'] = kwargs.pop('batch_shape')[1:]
+        super().__init__(**kwargs)
+
+# Load model with custom objects for version compatibility
+model = tf.keras.models.load_model(
+    "model/retina_model.h5",
+    compile=False,
+    custom_objects={"InputLayer": CompatInputLayer}
+)
 
 classes = ["No DR", "Mild", "Moderate", "Severe", "Proliferative"]
 
