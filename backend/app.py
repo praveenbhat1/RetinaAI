@@ -16,7 +16,7 @@ app.add_middleware(
 )
 
 # load model
-model = tf.keras.models.load_model("model/retina_model.h5")
+model = tf.keras.models.load_model("model/retina_model.h5", compile=False)
 
 classes = ["No DR", "Mild", "Moderate", "Severe", "Proliferative"]
 
