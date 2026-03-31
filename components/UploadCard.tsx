@@ -77,7 +77,7 @@ export default function UploadCard() {
         let apiResult: any = null;
         let apiError = false;
 
-        fetch("http://localhost:8000/predict", {
+        fetch("https://retinaai-d1zs.onrender.com/predict", {
             method: "POST",
             body: formData
         }).then(res => {
