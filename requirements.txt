@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pillow
+numpy==1.23.5
+tensorflow==2.15.0
+python-multipart
+setuptools
+wheel
