@@ -9,19 +9,23 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading && !user) {
+        if (loading) return;
+        if (!user) {
             router.push("/login");
+            return;
+        }
+        // Redirect pending doctors away from all pages except /pending
+        if (user.role === "pending_doctor" && window.location.pathname !== "/pending") {
+            router.push("/pending");
         }
     }, [user, loading, router]);
 
     if (loading) {
         return (
             <div className="min-h-screen bg-white flex items-center justify-center relative overflow-hidden">
-                {/* HUD Blueprint Grid */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-                    style={{ backgroundImage: `linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)`, backgroundSize: '40px 40px' }} 
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{ backgroundImage: `linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)`, backgroundSize: '40px 40px' }}
                 />
-                
                 <div className="relative z-10 flex flex-col items-center gap-6">
                     <div className="w-12 h-12 border-4 border-slate-100 border-t-slate-900 rounded-full animate-spin" />
                     <div className="flex flex-col items-center">
@@ -31,7 +35,6 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
                         </div>
                     </div>
                 </div>
-
                 <style jsx>{`
                     @keyframes loading {
                         0% { transform: scaleX(0); transform-origin: left; }
@@ -45,14 +48,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     }
 
     if (!user) return null;
-
-    if (user.role === "pending_doctor") {
-        // Only allow access to the pending page itself
-        if (typeof window !== "undefined" && window.location.pathname !== "/pending") {
-             router.push("/pending");
-             return null;
-        }
-    }
+    if (user.role === "pending_doctor" && typeof window !== "undefined" && window.location.pathname !== "/pending") return null;
 
     return <>{children}</>;
 }

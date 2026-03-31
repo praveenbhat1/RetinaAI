@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 
 const ANALYSIS_STEPS = [
     { label: "Extracting retinal features…", duration: 400 },
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function UploadCard({ doctorMode = false }: Props) {
+    const { user } = useAuth();
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -100,10 +102,16 @@ export default function UploadCard({ doctorMode = false }: Props) {
         setStepIndex(0);
         setCompletedSteps([]);
 
-        // Resolve patient ID (same patient = same ID)
+        // For patients: auto-use their account name
+        const effectiveName = doctorMode ? patientName.trim() : (user?.name || "Patient");
+
+        // Resolve patient ID
         let resolvedPatientId = `SCN-${Math.floor(Math.random() * 10000).toString().padStart(4, "0")}`;
         if (doctorMode) {
-            resolvedPatientId = await resolvePatientId(patientName);
+            resolvedPatientId = await resolvePatientId(effectiveName);
+        } else if (auth.currentUser) {
+            // For patients: consistent ID based on their uid (PAT-<last 4 of uid>)
+            resolvedPatientId = `PAT-${auth.currentUser.uid.slice(-4).toUpperCase()}`;
         }
 
         // Start API request concurrently with animation
@@ -161,11 +169,11 @@ export default function UploadCard({ doctorMode = false }: Props) {
                             prediction: apiResult.prediction,
                             confidence: apiResult.confidence,
                             scanId: resolvedPatientId,
+                            patientName: effectiveName,
+                            patientId: resolvedPatientId,
                             timestamp: new Date(),
                         };
                         if (doctorMode) {
-                            docData.patientName = patientName.trim();
-                            docData.patientId = resolvedPatientId;
                             docData.doctorId = auth.currentUser.uid;
                         }
                         addDoc(collection(db, "predictions"), docData).catch(console.error);
