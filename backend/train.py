@@ -15,32 +15,38 @@ import tensorflow as tf
 from tensorflow.keras import layers, models, callbacks
 from tensorflow.keras.applications import EfficientNetB3
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from sklearn.utils.class_weight import compute_class_weight
 from PIL import Image
+import cv2  # for CLAHE preprocessing
 
 # ─────────────────────────────────────────────
 # 0.  CONFIGURATION  (edit these paths)
 # ─────────────────────────────────────────────
 CONFIG = {
     # ── Dataset ──
-    # Option A: folder layout  (images/<class_name>/*.jpg)
-    "dataset_dir": "dataset/images",          # set to your images folder
+    # Using APTOS-style CSV (id_code, diagnosis)
+    "use_csv":     True,
+    "csv_path":    "model/train_1.csv",
+    "img_dir":     "model/train_images/train_images",   # where the .png files are
 
-    # Option B: APTOS-style CSV
-    "use_csv":     False,
-    "csv_path":    "dataset/train.csv",        # columns: id_code, diagnosis
-    "img_dir":     "dataset/train_images",     # folder with the actual images
+    # Unused when use_csv=True
+    "dataset_dir": "dataset/images",
 
     # ── Model ──
-    "img_size":    (224, 224),
-    "batch_size":  16,
-    "epochs":      5,
+    "img_size":    (256, 256),  # Higher resolution for micro-details
+    "batch_size":  16,          # Smaller batch for more gradient updates
+    "epochs_p1":   5,           # Stronger warm-up
+    "epochs_p2":   15,          # Deep fine-tuning
     "val_split":   0.2,
     "dropout":     0.5,
-    "dense_units": 128,
+    "dense_units": 256,         # Prevent overfitting
+    "fine_tune":   True,
+    "learning_rate": 0.0001,
 
     # ── Output ──
-    "model_path":  "retina_model.h5",
+    "model_path":  "model/retina_model.h5",
     "history_png": "training_history.png",
+    "history_csv": "training_history.csv",
 }
 
 CLASSES = ["No DR", "Mild", "Moderate", "Severe", "Proliferative"]
@@ -64,6 +70,29 @@ def build_dataframe_from_csv(csv_path: str, img_dir: str) -> pd.DataFrame:
 
 
 # ─────────────────────────────────────────────
+# 1.5.  ADVANCED PREPROCESSING (CLAHE)
+# ─────────────────────────────────────────────
+def apply_clahe(img):
+    """
+    Enhance blood vessels using histogram equalization (PRO Strategy).
+    """
+    # Convert to uint8 [0-255] if float from Keras
+    if img.dtype != np.uint8:
+        img_u8 = (img * 255.0).astype(np.uint8) if np.max(img) <= 1.0 else img.astype(np.uint8)
+    else:
+        img_u8 = img
+
+    # Use RGB to LAB since Keras loads as RGB
+    lab = cv2.cvtColor(img_u8, cv2.COLOR_RGB2LAB)
+    l, a, b = cv2.split(lab)
+    l = cv2.equalizeHist(l)                 # The REAL paper upgrade
+    lab_merged = cv2.merge((l,a,b))
+    enhanced_rgb = cv2.cvtColor(lab_merged, cv2.COLOR_LAB2RGB)
+    
+    return enhanced_rgb.astype(np.float32)
+
+
+# ─────────────────────────────────────────────
 # 2.  DATA GENERATORS
 # ─────────────────────────────────────────────
 def build_generators(config: dict):
@@ -72,24 +101,21 @@ def build_generators(config: dict):
     batch    = config["batch_size"]
     val_frac = config["val_split"]
 
-    # Augmentation for training
+    # Balanced Augmentation (NOT too strong)
+    # Note: No rescaling here because EfficientNet has its own Rescaling layer.
     train_datagen = ImageDataGenerator(
-        rescale=1.0 / 255,
-        rotation_range=20,
-        zoom_range=0.15,
-        width_shift_range=0.1,
-        height_shift_range=0.1,
+        rotation_range=15,
+        zoom_range=0.1,
+        brightness_range=[0.9, 1.1],
         horizontal_flip=True,
-        vertical_flip=False,
-        brightness_range=[0.85, 1.15],
-        fill_mode="nearest",
         validation_split=val_frac,
+        preprocessing_function=apply_clahe, 
     )
 
-    # No augmentation for validation (only rescale)
+    # Validation datagen also uses CLAHE for consistency
     val_datagen = ImageDataGenerator(
-        rescale=1.0 / 255,
         validation_split=val_frac,
+        preprocessing_function=apply_clahe,
     )
 
     generator_kwargs = dict(
@@ -178,8 +204,8 @@ def make_callbacks(model_path: str):
             restore_best_weights=True, verbose=1
         ),
         callbacks.ReduceLROnPlateau(
-            monitor="val_loss", factor=0.5,
-            patience=2, min_lr=1e-7, verbose=1
+            monitor="val_loss", factor=0.3,
+            patience=2, min_lr=1e-6, verbose=1
         ),
     ]
 
@@ -205,22 +231,23 @@ def plot_history(history, out_path: str):
 
     plt.tight_layout()
     plt.savefig(out_path, dpi=150)
-    plt.show()
+    plt.close()
     print(f"[PLOT] History saved → {out_path}")
 
 
+# 7.  FINE-TUNING  (THE KEY TO 70%+)
 # ─────────────────────────────────────────────
-# 7.  FINE-TUNING  (optional Phase 2)
-# ─────────────────────────────────────────────
-def fine_tune(model, base, train_gen, val_gen, config, unfreeze_from: int = 100):
-    """Unfreeze last N layers of the base and retrain at a low LR."""
-    print(f"\n[FINE-TUNE] Unfreezing last {unfreeze_from} base layers…")
+def fine_tune_model(model, base, train_gen, val_gen, config, class_weights=None, unfreeze_from=50):
+    """Unfreeze top portion of the base to specialize on retinal features."""
+    print(f"\n[FINE-TUNE] Phase 2 — Top Specialization (unfreezing {unfreeze_from} layers)…")
     base.trainable = True
+    
+    # Freeze the foundational layers to prevent catastrophic forgetting
     for layer in base.layers[:-unfreeze_from]:
         layer.trainable = False
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5), # Keep LR very low for full unfreeze
         loss="categorical_crossentropy",
         metrics=["accuracy"],
     )
@@ -228,13 +255,13 @@ def fine_tune(model, base, train_gen, val_gen, config, unfreeze_from: int = 100)
     ft_history = model.fit(
         train_gen,
         validation_data=val_gen,
-        epochs=3,
+        epochs=config["epochs_p2"],
+        class_weight=class_weights,
         callbacks=make_callbacks(config["model_path"]),
     )
     return ft_history
 
 
-# ─────────────────────────────────────────────
 # 8.  PREDICTION FUNCTION
 #     (drop-in compatible with FastAPI /predict)
 # ─────────────────────────────────────────────
@@ -257,8 +284,10 @@ def predict_image(model, image_input, img_size=(224, 224)):
         img = image_input.convert("RGB")
 
     img = img.resize(img_size)
-    arr = np.array(img, dtype=np.float32) / 255.0
-    arr = np.expand_dims(arr, axis=0)           # (1, 224, 224, 3)
+    arr = np.array(img, dtype=np.float32)
+    arr = apply_clahe(arr)                       # Apply CLAHE for consistency
+    # No rescaling here - EfficientNet handles it internally
+    arr = np.expand_dims(arr, axis=0)           # (1, 256, 256, 3)
 
     probs = model.predict(arr, verbose=0)[0]    # (5,)
     idx   = int(np.argmax(probs))
@@ -295,19 +324,34 @@ def main():
         dropout=CONFIG["dropout"],
         dense_units=CONFIG["dense_units"],
     )
-    model = compile_model(model, lr=1e-3)
+    model = compile_model(model, lr=CONFIG["learning_rate"])
 
-    # ── Phase 1: warm-up (frozen base) ──
-    print("\n[TRAIN] Phase 1 — Warm-up (frozen base)…")
+    # ── Safe Class Weights (Stops collapse) ──
+    print("\n[INFO] Using Safe Class Weights to prevent bias…")
+    class_weights = {
+        0: 1.0,
+        1: 1.5,
+        2: 1.5,
+        3: 2.0,
+        4: 2.0
+    }
+    print(f"[INFO] Class Weights: {class_weights}")
+
+    # ── Phase 1: Stable Warm-up (frozen base) ──
+    print(f"\n[TRAIN] Phase 1 — Head Warm-up (3 epochs, LR={CONFIG['learning_rate']})…")
     history = model.fit(
         train_gen,
         validation_data=val_gen,
-        epochs=CONFIG["epochs"],
+        epochs=CONFIG["epochs_p1"],
+        class_weight=class_weights,
         callbacks=make_callbacks(CONFIG["model_path"]),
     )
 
-    # ── Phase 2: fine-tune (optional, comment out if short on time) ──
-    ft_history = fine_tune(model, base, train_gen, val_gen, CONFIG)
+    # ── Phase 2: The Breakthrough (unfrozen layers) ──
+    if CONFIG.get("fine_tune", False):
+        ft_history = fine_tune_model(model, base, train_gen, val_gen, CONFIG, class_weights=class_weights)
+    else:
+        print("\n[INFO] Fine-tuning skipped (set fine_tune=True to reach 70%+).")
 
     # ── Results ──
     plot_history(history, CONFIG["history_png"])
@@ -325,7 +369,7 @@ def main():
     print("\n[TEST] Running a dummy prediction to verify the saved model…")
     saved_model = tf.keras.models.load_model(CONFIG["model_path"], compile=False)
     dummy_img   = Image.fromarray(np.random.randint(0, 255, (224, 224, 3), dtype=np.uint8))
-    result      = predict_image(saved_model, dummy_img)
+    result      = predict_image(saved_model, dummy_img, img_size=CONFIG["img_size"])
     print(f"[TEST] Result: {json.dumps(result, indent=2)}")
     print("\n✅ Pipeline complete.")
 

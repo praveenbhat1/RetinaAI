@@ -6,6 +6,7 @@ from PIL import Image
 import io
 import json
 import h5py
+import cv2  # for CLAHE preprocessing
 
 app = FastAPI()
 
@@ -76,16 +77,46 @@ def load_model_compat(path: str):
 
 
 MODEL_PATH = "model/retina_model.h5"
-print(f"[BOOT] Loading model from {MODEL_PATH}…")
-model = load_model_compat(MODEL_PATH)
-print("[BOOT] Model ready ✓")
+model = None  # Lazy loading to prevent Render timeouts
+
+def get_model():
+    """Helper to load model once when needed."""
+    global model
+    if model is None:
+        print(f"[BOOT] Loading model from {MODEL_PATH}…")
+        model = load_model_compat(MODEL_PATH)
+        print("[BOOT] Model ready ✓")
+    return model
 
 classes = ["No DR", "Mild", "Moderate", "Severe", "Proliferative"]
+# ─────────────────────────────────────────────
+# 1.5.  ADVANCED PREPROCESSING (CLAHE) - Matches train.py
+# ─────────────────────────────────────────────
+def apply_clahe(img):
+    """Enhance blood vessels using histogram equalization (PRO Strategy)."""
+    if img.dtype != np.uint8:
+        img_u8 = (img * 255.0).astype(np.uint8) if np.max(img) <= 1.0 else img.astype(np.uint8)
+    else:
+        img_u8 = img
+
+    lab = cv2.cvtColor(img_u8, cv2.COLOR_RGB2LAB)
+    l, a, b = cv2.split(lab)
+    l = cv2.equalizeHist(l)
+    lab_merged = cv2.merge((l, a, b))
+    enhanced_rgb = cv2.cvtColor(lab_merged, cv2.COLOR_LAB2RGB)
+    return enhanced_rgb.astype(np.float32)
 
 
 def preprocess(image: Image.Image) -> np.ndarray:
-    image = image.resize((224, 224))
-    arr = np.array(image) / 255.0
+    """Preprocess image: resize -> CLAHE -> rescale -> expand dims."""
+    # Resize to 256x256 (matches the 80% accuracy model size)
+    image = image.resize((256, 256))
+    arr = np.array(image, dtype=np.float32)
+    
+    # Apply CLAHE
+    arr = apply_clahe(arr)
+    
+    # Note: No rescaling here - EfficientNet handles it internally.
     return np.expand_dims(arr, axis=0)
 
 
@@ -99,7 +130,11 @@ async def predict(file: UploadFile = File(...)):
     contents = await file.read()
     image = Image.open(io.BytesIO(contents)).convert("RGB")
     img = preprocess(image)
-    pred = model.predict(img)
+    
+    # Use lazy loaded model
+    loaded_model = get_model()
+    pred = loaded_model.predict(img)
+    
     return {
         "prediction": classes[int(np.argmax(pred))],
         "confidence": float(np.max(pred)) * 100

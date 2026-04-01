@@ -12,8 +12,9 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the backend code
-COPY . .
+# Force Render to bind correctly to the port
+ENV PORT=10000
+EXPOSE 10000
 
-# Run the application
-CMD uvicorn app:app --host 0.0.0.0 --port $PORT
+# Run the application with guaranteed shell substitution
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-10000}"]
