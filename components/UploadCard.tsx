@@ -9,10 +9,11 @@ import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 
 const ANALYSIS_STEPS = [
-    { label: "Extracting retinal features…", duration: 400 },
-    { label: "Analyzing CNN layers…", duration: 600 },
-    { label: "Detecting abnormalities…", duration: 550 },
-    { label: "Generating diagnostic report…", duration: 350 },
+    { label: "Initializing EfficientNetB3 Engine…", duration: 800 },
+    { label: "Extracting high-res retinal features…", duration: 1200 },
+    { label: "Running Convolutional Layer Analysis…", duration: 1500 },
+    { label: "Detecting clinical abnormalities…", duration: 1000 },
+    { label: "Finalizing diagnostic report…", duration: 500 },
 ];
 
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/tiff", "image/bmp"];
@@ -31,6 +32,7 @@ export default function UploadCard({ doctorMode = false }: Props) {
     const [progress, setProgress] = useState(0);
     const [stepIndex, setStepIndex] = useState(0);
     const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+    const [isColdBooting, setIsColdBooting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [patientName, setPatientName] = useState("");
     const [patientNameError, setPatientNameError] = useState("");
@@ -58,6 +60,7 @@ export default function UploadCard({ doctorMode = false }: Props) {
         setProgress(0);
         setStepIndex(0);
         setCompletedSteps([]);
+        setIsColdBooting(false);
         setError(null);
         setPatientName("");
         setPatientNameError("");
@@ -101,6 +104,7 @@ export default function UploadCard({ doctorMode = false }: Props) {
         setProgress(0);
         setStepIndex(0);
         setCompletedSteps([]);
+        setIsColdBooting(false);
 
         // For patients: auto-use their account name
         const effectiveName = doctorMode ? patientName.trim() : (user?.name || "Patient");
@@ -147,13 +151,18 @@ export default function UploadCard({ doctorMode = false }: Props) {
             acc += step.duration;
         });
 
-        // Progress bar
+        // Progress bar (Slower, holds at 98% until API returns)
         const interval = setInterval(() => {
-            elapsed += 50;
-            const pct = Math.min(Math.round((elapsed / total) * 100), 99);
+            elapsed += 25; 
+            const pct = Math.min(Math.round((elapsed / total) * 100), 98);
             setProgress(pct);
 
-            if (elapsed >= total) {
+            if (elapsed >= total || apiResult || apiError) {
+                // If API is taking way longer than the animation (Cold Boot)
+                if (!apiResult && !apiError && elapsed > total + 1200) {
+                    setIsColdBooting(true);
+                }
+
                 if (apiError) {
                     clearInterval(interval);
                     setIsAnalyzing(false);
@@ -308,14 +317,29 @@ export default function UploadCard({ doctorMode = false }: Props) {
                                                 <ScanLine className="w-8 h-8 text-slate-900 animate-pulse" />
                                             </div>
                                             <div className="text-center">
-                                                <motion.p key={stepIndex} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-                                                    className="text-slate-900 font-mono font-bold text-xs uppercase tracking-[0.2em] mb-2">
-                                                    {ANALYSIS_STEPS[stepIndex]?.label}
-                                                </motion.p>
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />
-                                                    <span className="text-slate-900 text-[10px] font-mono font-bold tabular-nums">{progress}%_COMPLETE</span>
-                                                </div>
+                                                {isColdBooting ? (
+                                                    <>
+                                                        <motion.p key="coldboot" initial={{ opacity: 0, y: 2 }} animate={{ opacity: 1, y: 0 }}
+                                                            className="text-amber-500 font-mono font-bold text-xs uppercase tracking-[0.2em] mb-2 flex items-center justify-center gap-2">
+                                                            WAKING UP NEURAL ENGINE
+                                                        </motion.p>
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <Loader2 className="w-3 h-3 text-amber-500 animate-spin" />
+                                                            <span className="text-amber-600 text-[10px] font-mono font-bold tabular-nums animate-pulse">FREE CLOUD SERVER BOOTING (UP TO 60s)...</span>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <motion.p key={stepIndex} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+                                                            className="text-slate-900 font-mono font-bold text-xs uppercase tracking-[0.2em] mb-2">
+                                                            {ANALYSIS_STEPS[stepIndex]?.label}
+                                                        </motion.p>
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <Loader2 className="w-3 h-3 text-slate-400 animate-spin" />
+                                                            <span className="text-slate-900 text-[10px] font-mono font-bold tabular-nums">{progress}%_COMPLETE</span>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </>
@@ -337,7 +361,13 @@ export default function UploadCard({ doctorMode = false }: Props) {
                     {isAnalyzing && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-10 pt-10 border-t border-slate-100">
                             <div className="flex items-center justify-between mb-3 px-1">
-                                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Diagnostic_Engine_Thread</span>
+                                <div className="flex flex-col gap-1.5">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span className="text-[10px] font-mono font-bold text-slate-900 uppercase tracking-widest">EFFICIENTNET_B3_CORE_V4</span>
+                                    </div>
+                                    <span className="text-[9px] font-mono text-slate-400 font-bold uppercase tracking-tight">CLINICAL_BENCHMARK: <span className="text-emerald-600">87.0%_ACCURACY</span></span>
+                                </div>
                                 <span className="text-xs font-mono font-bold text-slate-900 tabular-nums">{progress}%</span>
                             </div>
                             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-8">

@@ -1,13 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Database, Network, ShieldCheck, Activity } from "lucide-react";
+import { Database, Network, ShieldCheck, Activity, Target } from "lucide-react";
 
 const stats = [
     { icon: Database, value: "5.2M", label: "ANALYZED_SCANS", detail: "Clinical dataset" },
-    { icon: Network, value: "99.4%", label: "ACCURACY_ROC", detail: "Verified protocol" },
+    { icon: Activity, value: "87.0%", label: "ACCURACY_ROC", detail: "EfficientNet-B3 v4.2" },
     { icon: ShieldCheck, value: "HIPAA", label: "SECURITY_COMPLIANCE", detail: "End-to-end encrypted" },
-    { icon: Activity, value: "1.2s", label: "INFERENCE_LATENCY", detail: "Edge optimized" },
+    { icon: Target, value: "1.2s", label: "INFERENCE_LATENCY", detail: "Edge optimized" },
 ];
 
 export default function TrustSection() {

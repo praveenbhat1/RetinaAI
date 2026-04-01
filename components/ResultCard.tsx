@@ -97,18 +97,21 @@ export default function ResultCard({
                         </div>
                         <div className="bg-white p-8 md:col-span-2 relative overflow-hidden group/terminal">
                             <div className="absolute inset-0 bg-slate-50/50 opacity-0 group-hover/terminal:opacity-100 transition-opacity pointer-events-none" />
-                            <div className="flex items-center gap-2 mb-4 relative z-10">
-                                <ActivitySquare className="w-4 h-4 text-slate-900" />
-                                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">PATHOLOGY_INSIGHTS_LOG:</span>
-                            </div>
-                            <p className="text-sm text-slate-900 leading-relaxed font-mono relative z-10">
-                                <span className="text-slate-300 mr-2 opacity-50">&gt;&gt;</span>
-                                {prediction === "No DR" ? "Neural map highlights robust macular architecture. Vascular networks exhibit typical bifurcation integrity. No aneurysmal swellings detected."
-                                    : prediction === "Mild" ? "This indicates mild diabetic retinopathy. Early microaneurysms detected. Routine monitoring is advised."
-                                    : prediction === "Moderate" ? "This indicates moderate diabetic retinopathy. Please consult an ophthalmologist for further evaluation."
-                                    : prediction === "Severe" ? "This indicates severe diabetic retinopathy. Extensive vascular damage detected. Urgent ophthalmology consultation is required."
-                                    : "This indicates proliferative diabetic retinopathy. Critical vascular changes detected. Immediate medical intervention is highly recommended."}
-                            </p>
+                                <div className="flex items-center gap-2 mb-4 relative z-10">
+                                    <ActivitySquare className="w-4 h-4 text-slate-900" />
+                                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">DIAGNOSTIC_INSIGHTS_v4.2:</span>
+                                    <span className="ml-auto text-[9px] font-mono font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 flex items-center gap-1.5 animate-pulse">
+                                        <Target className="w-3 h-3" /> PRECISION_TARGET: 87.0%
+                                    </span>
+                                </div>
+                                <p className="text-sm text-slate-900 leading-relaxed font-mono relative z-10">
+                                    <span className="text-slate-300 mr-2 opacity-50">&gt;&gt;</span>
+                                    {prediction === "No DR" ? "Engine: EfficientNet-B3. Neural map highlights robust macular architecture. Vascular networks exhibit typical bifurcation integrity. No aneurysmal swellings detected."
+                                        : prediction === "Mild" ? "Engine: EfficientNet-B3. This indicates mild diabetic retinopathy. Early microaneurysms detected. Routine monitoring is advised."
+                                        : prediction === "Moderate" ? "Engine: EfficientNet-B3. This indicates moderate diabetic retinopathy. Please consult an ophthalmologist for further evaluation."
+                                        : prediction === "Severe" ? "Engine: EfficientNet-B3. This indicates severe diabetic retinopathy. Extensive vascular damage detected. Urgent ophthalmology consultation is required."
+                                        : "Engine: EfficientNet-B3. This indicates proliferative diabetic retinopathy. Critical vascular changes detected. Immediate medical intervention is highly recommended."}
+                                </p>
                         </div>
                     </div>
 

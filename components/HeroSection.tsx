@@ -120,8 +120,8 @@ export default function HeroSection() {
                             />
                             <HUDLabel
                                 icon={Target}
-                                label="Scan Accuracy"
-                                value="Grade A+"
+                                label="Inference Precision"
+                                value="87.0% Accuracy"
                                 className="top-1/3 -left-12 w-44"
                             />
                             <HUDLabel

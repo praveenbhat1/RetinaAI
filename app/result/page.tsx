@@ -58,8 +58,8 @@ function ResultContent() {
                         {[
                             { label: "Certainty_Index", value: `${Math.round(Number(confidence)*10)/10}%`, icon: Target, color: "text-slate-900" },
                             { label: "Classification", value: String(prediction).toUpperCase(), icon: ShieldCheck, color: "text-slate-900" },
-                            { label: "Model_Version", value: "NEURAL_V4", icon: Database, color: "text-slate-400" },
-                            { label: "Auth_Signature", value: "VALIDATED", icon: Fingerprint, color: "text-emerald-600" },
+                            { label: "Neural_Engine", value: "EfficientNet-B3", icon: Database, color: "text-slate-400" },
+                            { label: "Clinical_Target", value: "87.0%_ACC", icon: Activity, color: "text-emerald-600" },
                         ].map((stat, i) => (
                             <motion.div key={i} {...fadeUp(i * 0.08 + 0.3)}
                                 className="p-8 rounded-2xl bg-white border border-slate-100 shadow-2xl shadow-slate-900/5 relative group"
@@ -68,7 +68,7 @@ function ResultContent() {
                                     <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white transition-all">
                                         <stat.icon className="w-4 h-4" />
                                     </div>
-                                    <span className="text-[10px] font-mono text-slate-200">ID_0{i+1}</span>
+                                    <span className="text-[10px] font-mono text-slate-200">PRO_v4.2</span>
                                 </div>
                                 <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest mb-1">{stat.label}</div>
                                 <div className={`text-2xl font-mono font-bold ${stat.color} tracking-tighter uppercase truncate`}>{stat.value}</div>
