@@ -160,6 +160,14 @@ export default function UploadCard({ doctorMode = false }: Props) {
                     setError("Failed to connect to diagnostic engine. Is the backend running?");
                 } else if (apiResult) {
                     clearInterval(interval);
+
+                    // ── SECURITY GATE INTERCEPTOR ──
+                    if (apiResult.prediction === "Invalid Image" || apiResult.prediction === "Uncertain / Unrecognized") {
+                        setIsAnalyzing(false);
+                        setError(apiResult.error || "SECURITY ALERT: Invalid image signature detected. Please upload a clinical retinal scan.");
+                        return;
+                    }
+
                     setProgress(100);
                     setCompletedSteps([0, 1, 2, 3]);
 

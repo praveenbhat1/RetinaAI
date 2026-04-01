@@ -120,6 +120,26 @@ def preprocess(image: Image.Image) -> np.ndarray:
     return np.expand_dims(arr, axis=0)
 
 
+def is_retina_image(img_arr: np.ndarray) -> bool:
+    """
+    Basic CV Sanity Check to reject selfies/cars/random photos.
+    Fundus scans have a distinct biological color signature (extremely red/orange dominant)
+    and contain distinct structural variance, unlike flat or purely blue/green images.
+    """
+    # Reject flat/blank images
+    if np.std(img_arr) < 10.0:
+        return False
+        
+    r = np.mean(img_arr[:, :, 0])
+    b = np.mean(img_arr[:, :, 2])
+    
+    # In human retinas, the blood/tissue makes the Red channel severely dominate the Blue channel.
+    # If Blue is somehow higher or roughly equal to Red, it is definitely not an eye scan.
+    if b > r * 0.9:  
+        return False
+        
+    return True
+
 @app.get("/")
 def health():
     return {"status": "ok", "model": "retina_model.h5"}
@@ -129,13 +149,32 @@ def health():
 async def predict(file: UploadFile = File(...)):
     contents = await file.read()
     image = Image.open(io.BytesIO(contents)).convert("RGB")
+    
+    # ── SECURITY GATE: Check if it's actually an eye ──
+    raw_arr = np.array(image)
+    if not is_retina_image(raw_arr):
+        return {
+            "prediction": "Invalid Image",
+            "confidence": 0.0,
+            "error": "Image rejected. Please upload a valid retinal fundus scan."
+        }
+    
     img = preprocess(image)
     
     # Use lazy loaded model
     loaded_model = get_model()
     pred = loaded_model.predict(img)
     
+    # Optional logic: Reject if the neural network is completely confused (low confidence)
+    confidence = float(np.max(pred)) * 100
+    if confidence < 45.0:
+        return {
+            "prediction": "Uncertain / Unrecognized",
+            "confidence": confidence,
+            "error": "The AI cannot securely classify this image. Proceed with medical block."
+        }
+        
     return {
         "prediction": classes[int(np.argmax(pred))],
-        "confidence": float(np.max(pred)) * 100
+        "confidence": confidence
     }
