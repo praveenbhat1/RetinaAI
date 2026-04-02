@@ -129,7 +129,7 @@ export default function SignupPage() {
                         <div className="space-y-4">
                             {[
                                 { icon: ShieldCheck, text: "HIPAA compliant, AES-256 encrypted" },
-                                { icon: Zap, text: "Results in under 2 seconds" },
+                                { icon: Zap, text: "Instant clinical reporting" },
                                 { icon: Activity, text: "5M+ scans processed globally" },
                             ].map(({ icon: Icon, text }, i) => (
                                 <div key={i} className="flex items-center gap-3 text-sm text-slate-600">
@@ -366,7 +366,7 @@ export default function SignupPage() {
                                         } disabled:cursor-not-allowed`}
                                 >
                                     {success ? (<><CheckCircle2 className="w-4 h-4" /> Account Created</>)
-                                        : loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Creating Account…</>)
+                                        : loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Creating account…</>)
                                             : "Create Account"}
                                 </motion.button>
                             </form>

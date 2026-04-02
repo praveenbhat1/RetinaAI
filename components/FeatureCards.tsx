@@ -9,7 +9,7 @@ export default function FeatureCards() {
         { icon: BrainCircuit, title: "Deep Learning", description: "Massive CNN architectures trained on non-biased multi-ethnic datasets.", tag: "MODEL_NRT" },
         { icon: ShieldCheck, title: "Privacy Focused", description: "Zero-retention protocols ensuring patient data never persists beyond inference.", tag: "SEC_HIPAA" },
         { icon: Eye, title: "Automated Grading", description: "Precise classification from DR-Mild to Proliferative abnormalities.", tag: "GRADE_ML" },
-        { icon: ActivitySquare, title: "High Precision", description: "Verified 99.4% AUC-ROC sensitivity for critical retinal pathologies.", tag: "KPI_99.4" },
+        { icon: ActivitySquare, title: "High Precision", description: "Verified 87.0% AUC-ROC sensitivity for critical retinal pathologies.", tag: "KPI_87.0" },
         { icon: Dna, title: "Clinical Workflow", description: "Seamless HL7/FHIR integration for standard hospital screening routines.", tag: "INTG_SYS" }
     ];
 

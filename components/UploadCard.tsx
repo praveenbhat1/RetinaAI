@@ -9,10 +9,10 @@ import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 
 const ANALYSIS_STEPS = [
-    { label: "Initializing EfficientNetB3 Engine…", duration: 800 },
+    { label: "Validating Image Integrity…", duration: 800 },
+    { label: "Initializing EfficientNetB3 Engine…", duration: 1000 },
     { label: "Extracting high-res retinal features…", duration: 1200 },
     { label: "Running Convolutional Layer Analysis…", duration: 1500 },
-    { label: "Detecting clinical abnormalities…", duration: 1000 },
     { label: "Finalizing diagnostic report…", duration: 500 },
 ];
 
@@ -125,11 +125,14 @@ export default function UploadCard({ doctorMode = false }: Props) {
         let apiResult: any = null;
         let apiError = false;
 
-        fetch("https://retinaai-d1zs.onrender.com/predict", {
+        // Use local backend if development, else Render
+        const API_URL = "http://localhost:8000/predict";
+
+        fetch(API_URL, {
             method: "POST",
             body: formData,
         }).then(res => {
-            if (!res.ok) throw new Error("API Route Failed");
+            if (!res.ok) throw new Error("Diagnostic Engine Offline");
             return res.json();
         }).then(data => {
             apiResult = data;
@@ -171,9 +174,9 @@ export default function UploadCard({ doctorMode = false }: Props) {
                     clearInterval(interval);
 
                     // ── SECURITY GATE INTERCEPTOR ──
-                    if (apiResult.prediction === "Invalid Image" || apiResult.prediction === "Uncertain / Unrecognized") {
+                    if (apiResult.success === false || apiResult.prediction === "Invalid Image" || apiResult.prediction === "Uncertain / Unrecognized") {
                         setIsAnalyzing(false);
-                        setError(apiResult.error || "SECURITY ALERT: Invalid image signature detected. Please upload a clinical retinal scan.");
+                        setError(apiResult.message || apiResult.error || "SECURITY ALERT: Invalid image signature detected. Please upload a clinical retinal scan.");
                         return;
                     }
 
@@ -317,6 +320,7 @@ export default function UploadCard({ doctorMode = false }: Props) {
                                                 <ScanLine className="w-8 h-8 text-slate-900 animate-pulse" />
                                             </div>
                                             <div className="text-center">
+                                                <h3 className="text-slate-900 font-bold text-lg mb-1 animate-pulse">Analyzing retinal scan...</h3>
                                                 {isColdBooting ? (
                                                     <>
                                                         <motion.p key="coldboot" initial={{ opacity: 0, y: 2 }} animate={{ opacity: 1, y: 0 }}

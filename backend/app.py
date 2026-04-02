@@ -134,29 +134,29 @@ def preprocess(image: Image.Image) -> np.ndarray:
     return np.expand_dims(arr, axis=0)
 
 
-def is_retina_image(img_arr: np.ndarray) -> bool:
+def is_retina_image(img_arr: np.ndarray) -> tuple[bool, str]:
     """
-    Basic CV Sanity Check to reject selfies/cars/random photos.
-    Fundus scans have a distinct biological color signature (extremely red/orange dominant)
-    and contain distinct structural variance, unlike flat or purely blue/green images.
+    Enhanced validation: Color signature + Brightness + Intensity.
     """
-    # Reject flat/blank images
-    if np.std(img_arr) < 10.0:
-        return False
+    # 1. Intensity/Brightness Check (Reject very dark/light)
+    avg_intensity = np.mean(img_arr)
+    if avg_intensity < 30:
+        return False, "Image too dark. Please provide a clear fundus scan."
+    if avg_intensity > 220:
+        return False, "Image too bright. Exposure exceeds diagnostic limits."
+
+    # 2. Flatness Check (No structural variance)
+    if np.std(img_arr) < 15.0:
+        return False, "Low structural complexity. Image appears to be a flat surface."
         
+    # 3. Color Signature Check (Red dominance)
     r = np.mean(img_arr[:, :, 0])
     b = np.mean(img_arr[:, :, 2])
     
-    # In human retinas, the blood/tissue makes the Red channel severely dominate the Blue channel.
-    # If Blue is somehow higher or roughly equal to Red, it is definitely not an eye scan.
-    if b > r * 0.9:  
-        return False
+    if b > r * 0.85:  
+        return False, "Invalid retinal image. Please upload a proper eye scan."
         
-    return True
-
-@app.get("/")
-def health():
-    return {"status": "ok", "model": "retina_model.h5"}
+    return True, "Valid"
 
 
 @app.post("/predict")
@@ -166,11 +166,14 @@ async def predict(file: UploadFile = File(...)):
     
     # ── SECURITY GATE: Check if it's actually an eye ──
     raw_arr = np.array(image)
-    if not is_retina_image(raw_arr):
+    is_valid, msg = is_retina_image(raw_arr)
+    if not is_valid:
         return {
+            "success": False,
             "prediction": "Invalid Image",
             "confidence": 0.0,
-            "error": "Image rejected. Please upload a valid retinal fundus scan."
+            "message": msg,
+            "error": msg
         }
     
     img = preprocess(image)
@@ -189,6 +192,7 @@ async def predict(file: UploadFile = File(...)):
         }
         
     return {
+        "success": True,
         "prediction": classes[int(np.argmax(pred))],
         "confidence": confidence
     }

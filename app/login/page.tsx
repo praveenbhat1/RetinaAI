@@ -98,13 +98,13 @@ export default function LoginPage() {
                             <span className="text-slate-900">powered by AI</span>
                         </h2>
                         <p className="text-slate-500 leading-relaxed mb-8">
-                            Upload fundus photographs and receive AI-powered diagnostic reports in seconds with 99.4% accuracy.
+                            Upload fundus photographs and receive AI-powered diagnostic reports in seconds with 87.0% accuracy.
                         </p>
 
                         <div className="space-y-4">
                             {[
                                 { icon: ShieldCheck, text: "HIPAA compliant, AES-256 encrypted" },
-                                { icon: Zap, text: "Results in under 2 seconds" },
+                                { icon: Zap, text: "Instant clinical reporting" },
                                 { icon: Activity, text: "5M+ scans processed globally" },
                             ].map(({ icon: Icon, text }, i) => (
                                 <div key={i} className="flex items-center gap-3 text-sm text-slate-600">
@@ -194,7 +194,7 @@ export default function LoginPage() {
                                         } disabled:cursor-not-allowed`}
                                 >
                                     {success ? (<><CheckCircle2 className="w-4 h-4" /> Signed In</>)
-                                        : loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Signing In…</>)
+                                        : loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Signing you in…</>)
                                             : "Sign In"}
                                 </motion.button>
                             </motion.form>

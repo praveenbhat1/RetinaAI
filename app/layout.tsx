@@ -14,7 +14,7 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: 'Retinex — Clinical-Grade Retinal Abnormality Detection',
-  description: 'AI-powered retinal abnormality detection using deep learning. Detect diabetic retinopathy with 99.4% accuracy.',
+  description: 'AI-powered retinal abnormality detection using deep learning. Detect diabetic retinopathy with 87.0% accuracy.',
 }
 
 export default function RootLayout({

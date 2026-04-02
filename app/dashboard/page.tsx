@@ -13,9 +13,9 @@ const fadeUp = (delay = 0) => ({
 });
 
 const STATS = [
-    { icon: Brain, label: "Model", value: "ResNet-50" },
-    { icon: Activity, label: "Accuracy", value: "99.4%" },
-    { icon: Zap, label: "Speed", value: "<2s" },
+    { icon: Brain, label: "Core Model", value: "EfficientNetB3" },
+    { icon: Activity, label: "Accuracy", value: "87.0%" },
+    { icon: Zap, label: "Speed", value: "Instant Report" },
     { icon: ShieldCheck, label: "Security", value: "AES-256" },
 ];
 

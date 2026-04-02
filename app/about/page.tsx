@@ -19,8 +19,8 @@ const TEAM = [
 
 const STATS = [
     { value: "5.0M+", label: "SCANS_PROCESSED" },
-    { value: "99.4%", label: "ACCURACY_ROC" },
-    { value: "<2.0s", label: "INFERENCE_LATENCY" },
+    { value: "87.0%", label: "ACCURACY_ROC" },
+    { value: "Instant", label: "DIAGNOSTIC_REPORT" },
     { value: "150+", label: "CLINICAL_NODES" },
 ];
 
@@ -117,7 +117,7 @@ export default function AboutPage() {
                     </motion.div>
                     <div className="grid md:grid-cols-3 gap-4">
                         {[
-                            { title: "RESNET_50_BACKBONE", desc: "Transfer learning from ImageNet with domain-specific fine-tuning for retinal extraction." },
+                            { title: "EFFICIENTNET_B3_CORE", desc: "State-of-the-art neural architecture optimized for high-resolution retinal feature extraction and automated clinical grading." },
                             { title: "ICDR_MAPPING_PROTOCOL", desc: "Five-class classification mapped strictly to International DR Scales (ICDR)." },
                             { title: "GRAD_CAM_VIZ_LAYER", desc: "Attention heatmaps highlight regions of clinical interest for interpretable diagnostics." },
                         ].map((item, i) => (

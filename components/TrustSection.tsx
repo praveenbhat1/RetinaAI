@@ -7,7 +7,7 @@ const stats = [
     { icon: Database, value: "5.2M", label: "ANALYZED_SCANS", detail: "Clinical dataset" },
     { icon: Activity, value: "87.0%", label: "ACCURACY_ROC", detail: "EfficientNet-B3 v4.2" },
     { icon: ShieldCheck, value: "HIPAA", label: "SECURITY_COMPLIANCE", detail: "End-to-end encrypted" },
-    { icon: Target, value: "1.2s", label: "INFERENCE_LATENCY", detail: "Edge optimized" },
+    { icon: Target, value: "INSTANT", label: "DIAGNOSTIC_REPORT", detail: "Edge optimized" },
 ];
 
 export default function TrustSection() {

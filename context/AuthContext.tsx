@@ -44,6 +44,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<void>;
     signup: (name: string, email: string, password: string, role: "patient" | "doctor", doctorData?: DoctorProfileData) => Promise<void>;
     logout: () => Promise<void>;
+    isAuthBusy: boolean;
     getPendingDoctors: () => Promise<AuthUser[]>;
     approveDoctor: (uid: string) => Promise<void>;
     rejectDoctor: (uid: string) => Promise<void>;
@@ -54,6 +55,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isAuthBusy, setIsAuthBusy] = useState(false);
 
     // Listen to Firebase auth state
     useEffect(() => {
@@ -62,14 +64,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
         }
 
-        const firebaseAuth = auth;
-        const firestore = db;
-
-        const unsubscribe = onAuthStateChanged(firebaseAuth, async (firebaseUser: FirebaseUser | null) => {
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
             if (firebaseUser) {
                 try {
-                    // Fetch role from Firestore
-                    const userDoc = await getDoc(doc(firestore, "users", firebaseUser.uid));
+                    const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         setUser({
@@ -79,7 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                             role: data.role as UserRole,
                         });
                     } else {
-                        // User exists in Auth but not Firestore (edge case)
                         setUser({
                             uid: firebaseUser.uid,
                             name: firebaseUser.displayName || "",
@@ -101,87 +98,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const signup = async (name: string, email: string, password: string, role: "patient" | "doctor", doctorData?: DoctorProfileData): Promise<void> => {
-        if (!auth || !db) {
-            const err = new Error("FB_INIT_MISSING: Firebase services are not available. Please verify your environment variables (NEXT_PUBLIC_FIREBASE_API_KEY).");
-            (err as any).code = "FB_INIT_MISSING";
-            throw err;
+        if (!auth || !db) throw new Error("Firebase services are not available.");
+        setIsAuthBusy(true);
+        try {
+            const credential = await createUserWithEmailAndPassword(auth, email, password);
+            const firebaseUser = credential.user;
+            await updateProfile(firebaseUser, { displayName: name });
+
+            const assignedRole: UserRole = role === "doctor" ? "pending_doctor" : "patient";
+            const userData: Record<string, any> = {
+                name, email, role: assignedRole,
+                status: role === "doctor" ? "pending" : "active",
+                createdAt: new Date().toISOString(),
+            };
+
+            if (role === "doctor" && doctorData) {
+                userData.licenseNumber = doctorData.licenseNumber;
+                userData.practiceType = doctorData.practiceType;
+                userData.hospitalName = doctorData.hospitalName;
+                userData.clinicName = doctorData.clinicName;
+                userData.specialization = doctorData.specialization;
+            }
+
+            await setDoc(doc(db, "users", firebaseUser.uid), userData);
+            setUser({ uid: firebaseUser.uid, name, email, role: assignedRole });
+        } finally {
+            setIsAuthBusy(false);
         }
-
-        // Create Firebase Auth account
-        const credential = await createUserWithEmailAndPassword(auth, email, password);
-        const firebaseUser = credential.user;
-
-        // Set display name
-        await updateProfile(firebaseUser, { displayName: name });
-
-        // Determine role: doctor → pending_doctor until admin approves
-        const assignedRole: UserRole = role === "doctor" ? "pending_doctor" : "patient";
-
-        // Build Firestore document — include doctor fields if applicable
-        const userData: Record<string, any> = {
-            name,
-            email,
-            role: assignedRole,
-            status: role === "doctor" ? "pending" : "active",
-            createdAt: new Date().toISOString(),
-        };
-
-        if (role === "doctor" && doctorData) {
-            userData.licenseNumber = doctorData.licenseNumber;
-            userData.practiceType = doctorData.practiceType;
-            userData.hospitalName = doctorData.hospitalName;
-            userData.clinicName = doctorData.clinicName;
-            userData.specialization = doctorData.specialization;
-        }
-
-        await setDoc(doc(db, "users", firebaseUser.uid), userData);
-
-        setUser({
-            uid: firebaseUser.uid,
-            name,
-            email,
-            role: assignedRole,
-        });
     };
 
     const login = async (email: string, password: string): Promise<void> => {
-        if (!auth || !db) {
-            console.error("Authentication check failed: auth =", auth, "db =", db);
-            const err = new Error("FB_INIT_MISSING: Firebase services are not available. Please verify your environment variables (NEXT_PUBLIC_FIREBASE_API_KEY).");
-            (err as any).code = "FB_INIT_MISSING";
-            throw err;
-        }
-
+        if (!auth || !db) throw new Error("Firebase services are not available.");
+        setIsAuthBusy(true);
         try {
             const credential = await signInWithEmailAndPassword(auth, email, password);
             const firebaseUser = credential.user;
-
-            // Fetch role from Firestore (gracefully handle if Firestore rules block access)
-            try {
-                const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-                if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    setUser({
-                        uid: firebaseUser.uid,
-                        name: data.name || firebaseUser.displayName || "",
-                        email: firebaseUser.email || "",
-                        role: data.role as UserRole,
-                    });
-                    return;
-                }
-            } catch (firestoreErr) {
-                console.warn("Firestore read failed, using Auth data:", firestoreErr);
+            const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                setUser({
+                    uid: firebaseUser.uid,
+                    name: data.name || firebaseUser.displayName || "",
+                    email: firebaseUser.email || "",
+                    role: data.role as UserRole,
+                });
+            } else {
+                setUser({
+                    uid: firebaseUser.uid,
+                    name: firebaseUser.displayName || "",
+                    email: firebaseUser.email || "",
+                    role: "patient",
+                });
             }
-
-            // Fallback: user exists in Auth but Firestore doc missing or inaccessible
-            setUser({
-                uid: firebaseUser.uid,
-                name: firebaseUser.displayName || "",
-                email: firebaseUser.email || "",
-                role: "patient",
-            });
-        } catch (authError) {
-            throw authError;
+        } finally {
+            setIsAuthBusy(false);
         }
     };
 
@@ -193,15 +163,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const getPendingDoctors = async (): Promise<AuthUser[]> => {
         if (!db) return [];
-        const firestore = db;
-        const q = query(collection(firestore, "users"), where("role", "==", "pending_doctor"));
+        const q = query(collection(db, "users"), where("role", "==", "pending_doctor"));
         const snapshot = await getDocs(q);
         return snapshot.docs.map(d => ({
             uid: d.id,
             name: d.data().name,
             email: d.data().email,
             role: d.data().role as UserRole,
-        }));
+        })) as AuthUser[];
     };
 
     const approveDoctor = async (uid: string): Promise<void> => {
@@ -215,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, signup, logout, getPendingDoctors, approveDoctor, rejectDoctor }}>
+        <AuthContext.Provider value={{ user, loading, isAuthBusy, login, signup, logout, getPendingDoctors, approveDoctor, rejectDoctor }}>
             {children}
         </AuthContext.Provider>
     );
