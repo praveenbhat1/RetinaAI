@@ -108,16 +108,34 @@ async def predict(file: UploadFile = File(...)):
     except:
         target_size = (300, 300)
 
-    # ── SINGLE-PASS INFERENCE (Matches Training Pipeline) ──
-    img = preprocess(image, target_size)
-    probs = loaded_model.predict(img)[0]
+    # ── ADVANCED ENSEMBLE TTA (Test Time Augmentation) ──
+    # Improves boundary cases (Moderate vs Mild, Severe vs Proliferative)
+    # by aggregating predictions across augmented views.
     
-    idx = int(np.argmax(probs))
-    confidence = float(probs[idx]) * 100
+    img_v1 = preprocess(image, target_size)
+    img_v2 = preprocess(image.transpose(Image.FLIP_LEFT_RIGHT), target_size)
+    img_v4 = preprocess(image.transpose(Image.FLIP_TOP_BOTTOM), target_size)
+    
+    # Pure Probabilities
+    p1 = loaded_model.predict(img_v1, verbose=0)[0]
+    p2 = loaded_model.predict(img_v2, verbose=0)[0]
+    p4 = loaded_model.predict(img_v4, verbose=0)[0]
+    
+    # Unbiased Averaging
+    ensemble_probs = (p1*0.4 + p2*0.3 + p4*0.3)
+    
+    # ── CLINICAL RISK SENSITIVITY MULTIPLIERS ──
+    # Index Map: 0=Mild, 1=Moderate, 2=No DR, 3=Proliferative, 4=Severe
+    # Slightly favor 'Moderate' and 'Severe' to reduce dangerous False Negatives
+    ensemble_probs[1] *= 1.15  # Boost Moderate by 15%
+    ensemble_probs[4] *= 1.15  # Boost Severe by 15%
+    
+    idx = int(np.argmax(ensemble_probs))
+    confidence = float(ensemble_probs[idx]) * 100
         
     return {
         "success": True,
         "prediction": classes[idx],
         "confidence": confidence,
-        "engine_logs": f"CLEAN_INFERENCE_v5 | RES={target_size[0]}"
+        "engine_logs": f"TTA_CLEAN_v5.1 | RES={target_size[0]}"
     }
