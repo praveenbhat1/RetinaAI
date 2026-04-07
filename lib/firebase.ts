@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { getFirestore, initializeFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -42,7 +42,11 @@ if (getApps().length === 0) {
 }
 
 export const auth = app ? getAuth(app) : (null as any);
-export const db = app ? getFirestore(app) : (null as any);
+
+// Use initializeFirestore with Long Polling to prevent "Backend didn't respond within 10 seconds" errors
+export const db = (isBrowser && app) ? initializeFirestore(app, {
+    experimentalForceLongPolling: true,
+}) : (app ? getFirestore(app) : (null as any));
 
 // Enable Offline Persistence for a smoother experience
 if (isBrowser && db) {

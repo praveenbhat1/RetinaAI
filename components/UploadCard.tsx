@@ -125,21 +125,39 @@ export default function UploadCard({ doctorMode = false }: Props) {
         let apiResult: any = null;
         let apiError = false;
 
-        // Use local backend if development, else Render
-        const API_URL = "http://localhost:8000/predict";
+        // Dynamic Origin discovery: Bridges the connection for Hotspot/Remote usage
+        const getDynamicUrl = () => {
+            if (typeof window !== "undefined") {
+                const host = window.location.hostname;
+                return `http://${host}:8000/predict`;
+            }
+            return "http://127.0.0.1:8000/predict";
+        };
 
-        fetch(API_URL, {
-            method: "POST",
-            body: formData,
-        }).then(res => {
-            if (!res.ok) throw new Error("Diagnostic Engine Offline");
-            return res.json();
-        }).then(data => {
-            apiResult = data;
-        }).catch(err => {
-            console.error(err);
-            apiError = true;
-        });
+        const API_URL = getDynamicUrl();
+
+        const performInference = async (attempt = 1) => {
+            try {
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    body: formData,
+                });
+                if (!res.ok) throw new Error(`Diagnostic Engine Offline (HTTP ${res.status})`);
+                const data = await res.json();
+                apiResult = data;
+            } catch (err: any) {
+                if (attempt < 3) {
+                    console.warn(`[Retinex Connect] Attempt ${attempt} failed. Retrying in 1.5s…`, err);
+                    await new Promise(r => setTimeout(r, 1500));
+                    return performInference(attempt + 1);
+                }
+                console.error("[Retinex Connect] Primary connection failed.", err);
+                apiError = true;
+                setError(`Connection Failed (Ref: ${err.message || "E_CONN_TIMEOUT"}). Please ensure the Diagnostic Engine is running.`);
+            }
+        };
+
+        performInference();
 
         let elapsed = 0;
         const total = ANALYSIS_STEPS.reduce((s, st) => s + st.duration, 0);

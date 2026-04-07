@@ -100,28 +100,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const signup = async (name: string, email: string, password: string, role: "patient" | "doctor", doctorData?: DoctorProfileData): Promise<void> => {
         if (!auth || !db) throw new Error("Firebase services are not available.");
         setIsAuthBusy(true);
-        try {
-            const credential = await createUserWithEmailAndPassword(auth, email, password);
-            const firebaseUser = credential.user;
-            await updateProfile(firebaseUser, { displayName: name });
 
-            const assignedRole: UserRole = role === "doctor" ? "pending_doctor" : "patient";
-            const userData: Record<string, any> = {
-                name, email, role: assignedRole,
-                status: role === "doctor" ? "pending" : "active",
-                createdAt: new Date().toISOString(),
-            };
+        const executeSignup = async (attempt = 1): Promise<void> => {
+            try {
+                const credential = await createUserWithEmailAndPassword(auth, email, password);
+                const firebaseUser = credential.user;
+                await updateProfile(firebaseUser, { displayName: name });
 
-            if (role === "doctor" && doctorData) {
-                userData.licenseNumber = doctorData.licenseNumber;
-                userData.practiceType = doctorData.practiceType;
-                userData.hospitalName = doctorData.hospitalName;
-                userData.clinicName = doctorData.clinicName;
-                userData.specialization = doctorData.specialization;
+                const assignedRole: UserRole = role === "doctor" ? "pending_doctor" : "patient";
+                const userData: Record<string, any> = {
+                    name, email, role: assignedRole,
+                    status: role === "doctor" ? "pending" : "active",
+                    createdAt: new Date().toISOString(),
+                };
+
+                if (role === "doctor" && doctorData) {
+                    userData.licenseNumber = doctorData.licenseNumber;
+                    userData.practiceType = doctorData.practiceType;
+                    userData.hospitalName = doctorData.hospitalName;
+                    userData.clinicName = doctorData.clinicName;
+                    userData.specialization = doctorData.specialization;
+                }
+
+                await setDoc(doc(db, "users", firebaseUser.uid), userData);
+                setUser({ uid: firebaseUser.uid, name, email, role: assignedRole });
+            } catch (err: any) {
+                if (err.code === "auth/network-request-failed" && attempt < 3) {
+                    console.warn(`[Retinex Auth] Network failed. Retrying attempt ${attempt + 1}...`);
+                    await new Promise(r => setTimeout(r, 1500));
+                    return executeSignup(attempt + 1);
+                }
+                throw err;
             }
+        };
 
-            await setDoc(doc(db, "users", firebaseUser.uid), userData);
-            setUser({ uid: firebaseUser.uid, name, email, role: assignedRole });
+        try {
+            await executeSignup();
         } finally {
             setIsAuthBusy(false);
         }
@@ -130,26 +144,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = async (email: string, password: string): Promise<void> => {
         if (!auth || !db) throw new Error("Firebase services are not available.");
         setIsAuthBusy(true);
-        try {
-            const credential = await signInWithEmailAndPassword(auth, email, password);
-            const firebaseUser = credential.user;
-            const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                setUser({
-                    uid: firebaseUser.uid,
-                    name: data.name || firebaseUser.displayName || "",
-                    email: firebaseUser.email || "",
-                    role: data.role as UserRole,
-                });
-            } else {
-                setUser({
-                    uid: firebaseUser.uid,
-                    name: firebaseUser.displayName || "",
-                    email: firebaseUser.email || "",
-                    role: "patient",
-                });
+
+        const executeLogin = async (attempt = 1): Promise<void> => {
+            try {
+                const credential = await signInWithEmailAndPassword(auth, email, password);
+                const firebaseUser = credential.user;
+                const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    setUser({
+                        uid: firebaseUser.uid,
+                        name: data.name || firebaseUser.displayName || "",
+                        email: firebaseUser.email || "",
+                        role: data.role as UserRole,
+                    });
+                } else {
+                    setUser({
+                        uid: firebaseUser.uid,
+                        name: firebaseUser.displayName || "",
+                        email: firebaseUser.email || "",
+                        role: "patient",
+                    });
+                }
+            } catch (err: any) {
+                if (err.code === "auth/network-request-failed" && attempt < 3) {
+                    console.warn(`[Retinex Auth] Network failed. Retrying attempt ${attempt + 1}...`);
+                    await new Promise(r => setTimeout(r, 1500));
+                    return executeLogin(attempt + 1);
+                }
+                throw err;
             }
+        };
+
+        try {
+            await executeLogin();
         } finally {
             setIsAuthBusy(false);
         }
