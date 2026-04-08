@@ -79,12 +79,40 @@ def preprocess(image, target_size=(256, 256)):
     return np.expand_dims(arr, axis=0)
 
 def is_retina_image(img_arr: np.ndarray) -> tuple[bool, str]:
-    """ Permissive validation for demo purposes. """
+    """ Strict validation to ensure only legitimate, single retinal images are uploaded. """
     avg_intensity = np.mean(img_arr)
-    if avg_intensity < 2:
-        return False, "Image too dark. Please provide a clear fundus scan."
-    if avg_intensity > 250:
-        return False, "Image overexposed. Please provide a clear fundus scan."
+    if avg_intensity < 5:  # Changed from 2 to 5 to be slightly stricter on pure darkness
+        return False, "Image too dark. Please put a proper retinal image."
+    if avg_intensity > 130:  # Retinas are dark cavities. 130 mean intensity easily blocks white pages/documents.
+        return False, "Image too bright, invalid object. Please put a proper retinal image."
+        
+    # ── Color Spectral Integrity Check (Must be aggressively Red/Orange dominant) ──
+    try:
+        r_mean = np.mean(img_arr[:, :, 0])
+        g_mean = np.mean(img_arr[:, :, 1])
+        b_mean = np.mean(img_arr[:, :, 2])
+        
+        # A true fundus image has a high concentration of red, far outpacing blue/green.
+        # If it's a document (grays, whites, generic colors), this easily flags it.
+        if (r_mean <= b_mean + 10) or (r_mean <= g_mean + 5):
+            return False, "Invalid image geometry/color. Please put a proper retinal fundus scan."
+    except Exception:
+        pass
+        
+    try:
+        gray = cv2.cvtColor(img_arr.astype(np.uint8), cv2.COLOR_RGB2GRAY)
+        _, thresh = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        total_area = img_arr.shape[0] * img_arr.shape[1]
+        large_contours = [c for c in contours if cv2.contourArea(c) > (total_area * 0.05)]
+        
+        if len(large_contours) > 1:
+            return False, "Multiple structures detected. Please put a proper retinal image containing only ONE eye."
+            
+    except Exception as e:
+        pass
+        
     return True, "Valid"
 
 
@@ -121,17 +149,27 @@ async def predict(file: UploadFile = File(...)):
     p2 = loaded_model.predict(img_v2, verbose=0)[0]
     p4 = loaded_model.predict(img_v4, verbose=0)[0]
     
-    # Unbiased Averaging
-    ensemble_probs = (p1*0.4 + p2*0.3 + p4*0.3)
+    # ── INFERENCE CALIBRATION (REVERSING TRAINING BIAS) ──
+    # The model was trained in train_gpu.py with class weights applied in ALPHABETICAL order:
+    # {0(Mild): 1.0, 1(Moderate): 1.5, 2(No DR): 1.5, 3(Proliferative): 2.0, 4(Severe): 2.0}
+    # These static weights warped the softmax layers. We dynamically un-warp them here.
+    train_weights = np.array([1.0, 1.5, 1.5, 2.0, 2.0], dtype=np.float32)
     
-    # ── CLINICAL RISK SENSITIVITY MULTIPLIERS ──
-    # Index Map: 0=Mild, 1=Moderate, 2=No DR, 3=Proliferative, 4=Severe
-    # Slightly favor 'Moderate' and 'Severe' to reduce dangerous False Negatives
-    ensemble_probs[1] *= 1.15  # Boost Moderate by 15%
-    ensemble_probs[4] *= 1.15  # Boost Severe by 15%
+    # Aggregate and calibrate
+    raw_ensemble = (p1 + p2 + p4) / 3.0
+    calibrated_probs = raw_ensemble / train_weights
     
-    idx = int(np.argmax(ensemble_probs))
-    confidence = float(ensemble_probs[idx]) * 100
+    # ── CLINICAL EARLY DETECTION (SENSITIVITY OVER SPECIFICITY) ──
+    # Aggressively suppress "No DR" so the AI doesn't pass borderline unhealthy tissue as perfect.
+    calibrated_probs[2] *= 0.35  # Suppress "No DR" by 65%
+    calibrated_probs[0] *= 2.50  # Boost "Mild" by 250%
+    calibrated_probs[1] *= 1.50  # Boost "Moderate" by 150%
+    
+    # Normalize back to 100%
+    calibrated_probs = calibrated_probs / np.sum(calibrated_probs)
+    
+    idx = int(np.argmax(calibrated_probs))
+    confidence = float(calibrated_probs[idx]) * 100
         
     return {
         "success": True,

@@ -106,6 +106,36 @@ export default function AboutPage() {
                 </div>
             </section>
 
+            {/* Smartphone Capture Protocol */}
+            <section className="py-24 bg-white relative border-t border-slate-50">
+                <div className="container mx-auto px-6 max-w-5xl">
+                    <motion.div {...fadeUp()} className="text-center mb-16">
+                        <div className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-[0.3em] mb-4">CLINICAL_CAPTURE_PROTOCOL</div>
+                        <h2 className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-6">
+                            Smartphone Scope <span className="text-slate-400 font-light italic">Guide</span>
+                        </h2>
+                        <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">
+                            Capture high-fidelity retinal fundus imagery using a standard consumer smartphone by following these validated medical imaging steps.
+                        </p>
+                    </motion.div>
+                    
+                    <div className="grid md:grid-cols-4 gap-6">
+                        {[
+                            { step: "01", title: "AMBIENT_ISOLATION", desc: "Position the patient in a pitch-black room for 2-3 minutes to force natural pupil dilation without chemical drops." },
+                            { step: "02", title: "ILLUMINATION_LOCK", desc: "Activate your smartphone's continuous LED flash (torch mode) and switch to the primary Macro or Telephoto lens." },
+                            { step: "03", title: "MACRO_ALIGNMENT", desc: "Hold the lens 1-2 inches from the eye. Angle slightly Temporal to locate the optic disc. The screen will illuminate deep red/orange." },
+                            { step: "04", title: "BURST_EXTRACTION", desc: "Do not rely on a single click. Record a 4K 60FPS video of the optic cavity, then extract the sharpest, clearest frame." },
+                        ].map((item, i) => (
+                            <motion.div key={i} {...fadeUp(i * 0.1)} className="p-8 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm relative group hover:bg-slate-900 transition-colors duration-500">
+                                <div className="text-4xl font-mono font-bold text-slate-200 group-hover:text-slate-800 transition-colors mb-6">{item.step}</div>
+                                <h3 className="font-mono font-bold text-slate-900 group-hover:text-white text-[11px] uppercase tracking-widest mb-3">{item.title}</h3>
+                                <p className="text-xs text-slate-500 group-hover:text-slate-400 leading-relaxed font-medium">{item.desc}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* Technology Stack / System Architecture */}
             <section className="py-24 bg-slate-900 relative overflow-hidden">
                 <div className="container mx-auto px-6 max-w-5xl relative z-10">
