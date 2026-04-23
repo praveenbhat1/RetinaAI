@@ -155,8 +155,8 @@ export default function AdminPage() {
                                         <thead>
                                             <tr className="bg-slate-50 border-b border-slate-100">
                                                 <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">IDENTITY_NAME</th>
-                                                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">CONTACT_EMAIL</th>
-                                                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">VERIFICATION_STATUS</th>
+                                                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">CLINICAL_CREDENTIALS</th>
+                                                <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">INSTITUTION_LINK</th>
                                                 <th className="px-8 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">AUTHORIZATION</th>
                                             </tr>
                                         </thead>
@@ -171,25 +171,28 @@ export default function AdminPage() {
                                                         animate={{ opacity: 1 }}
                                                         className="hover:bg-slate-50/50 transition-colors"
                                                     >
-                                                        <td className="px-8 py-6 text-xs font-bold text-slate-900 uppercase tracking-wide">{doc.name}</td>
-                                                        <td className="px-8 py-6 text-[10px] text-slate-400 uppercase tracking-widest">{doc.email}</td>
                                                         <td className="px-8 py-6">
-                                                            {status === "approved" ? (
-                                                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase tracking-widest">
-                                                                    <Check className="w-3 h-3" /> VERIFIED
-                                                                </span>
-                                                            ) : status === "rejected" ? (
-                                                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-red-100 text-red-700 text-[10px] font-bold rounded uppercase tracking-widest">
-                                                                    <X className="w-3 h-3" /> REJECTED
-                                                                </span>
-                                                            ) : (
-                                                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-amber-100 text-amber-700 text-[10px] font-bold rounded uppercase tracking-widest">
-                                                                    <div className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" /> PENDING
-                                                                </span>
-                                                            )}
+                                                            <div className="flex flex-col">
+                                                                <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">{doc.name}</span>
+                                                                <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">{doc.email}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-8 py-6">
+                                                            <div className="flex flex-col">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-bold rounded ring-1 ring-slate-200">LIC: {doc.licenseNumber || "N/A"}</span>
+                                                                </div>
+                                                                <span className="text-[10px] font-bold text-slate-700 uppercase">{doc.specialization || "General Ophthalmology"}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-8 py-6">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-xs font-bold text-slate-900">{doc.hospitalName || doc.clinicName || "Private Practice"}</span>
+                                                                <span className="text-[9px] font-mono text-slate-400 uppercase mt-0.5">{doc.practiceType || "Unspecified"}</span>
+                                                            </div>
                                                         </td>
                                                         <td className="px-8 py-6 text-right">
-                                                            {!status && (
+                                                            {!status ? (
                                                                 <div className="flex items-center gap-3 justify-end">
                                                                     <button
                                                                         onClick={() => handleApprove(doc.uid)}
@@ -205,6 +208,18 @@ export default function AdminPage() {
                                                                     >
                                                                         <X className="w-3 h-3" /> REJECT
                                                                     </button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 justify-end">
+                                                                    {status === "approved" ? (
+                                                                        <span className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase tracking-widest">
+                                                                            <Check className="w-3 h-3" /> VERIFIED
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-red-100 text-red-700 text-[10px] font-bold rounded uppercase tracking-widest">
+                                                                            <X className="w-3 h-3" /> REJECTED
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                             )}
                                                         </td>

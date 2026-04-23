@@ -9,6 +9,12 @@ import h5py
 import cv2  # for CLAHE preprocessing
 import os
 
+import logging
+
+# Configure Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("RetinaAI")
+
 app = FastAPI()
 
 app.add_middleware(
@@ -21,7 +27,11 @@ app.add_middleware(
 
 def load_model_compat(path: str):
     """Load the Keras model natively using Keras 3."""
-    return tf.keras.models.load_model(path, compile=False)
+    try:
+        return tf.keras.models.load_model(path, compile=False)
+    except Exception as e:
+        logger.error(f"[LOAD] Failed to load model at {path}: {e}")
+        raise RuntimeError("Model file corrupted or missing.")
 
 MODEL_PATH_87 = "model/retina_87_model.h5"
 MODEL_PATH_BASE = "model/retina_model.h5"
@@ -32,9 +42,9 @@ def get_model():
     """Helper to load model once when needed."""
     global model
     if model is None:
-        print(f"[BOOT] Loading EfficientNetB3 Neural Engine from {MODEL_PATH}…")
+        logger.info(f"[BOOT] Loading EfficientNetB3 Neural Engine from {MODEL_PATH}...")
         model = load_model_compat(MODEL_PATH)
-        print("[BOOT] Neural Engine Ready: High Precision Diagnostic Active ✓")
+        logger.info("[BOOT] Neural Engine Ready: High Precision Diagnostic Active ✓")
     return model
 
 # Alphabetized mapping exactly matching ImageDataGenerator training directories
@@ -55,17 +65,21 @@ def health():
 
 def apply_clahe(img):
     """Enhance blood vessels using histogram equalization (PRO Strategy)."""
-    if img.dtype != np.uint8:
-        img_u8 = (img * 255.0).astype(np.uint8) if np.max(img) <= 1.0 else img.astype(np.uint8)
-    else:
-        img_u8 = img
+    try:
+        if img.dtype != np.uint8:
+            img_u8 = (img * 255.0).astype(np.uint8) if np.max(img) <= 1.0 else img.astype(np.uint8)
+        else:
+            img_u8 = img
 
-    lab = cv2.cvtColor(img_u8, cv2.COLOR_RGB2LAB)
-    l, a, b = cv2.split(lab)
-    l = cv2.equalizeHist(l)
-    lab_merged = cv2.merge((l, a, b))
-    enhanced_rgb = cv2.cvtColor(lab_merged, cv2.COLOR_LAB2RGB)
-    return enhanced_rgb.astype(np.float32)
+        lab = cv2.cvtColor(img_u8, cv2.COLOR_RGB2LAB)
+        l, a, b = cv2.split(lab)
+        l = cv2.equalizeHist(l)
+        lab_merged = cv2.merge((l, a, b))
+        enhanced_rgb = cv2.cvtColor(lab_merged, cv2.COLOR_LAB2RGB)
+        return enhanced_rgb.astype(np.float32)
+    except Exception as e:
+        logger.error(f"[CLAHE] Optimization failed: {e}")
+        return img.astype(np.float32)
 
 def preprocess(image, target_size=(256, 256)):
     """Preprocess the image: resize and apply CLAHE."""
@@ -80,26 +94,23 @@ def preprocess(image, target_size=(256, 256)):
 
 def is_retina_image(img_arr: np.ndarray) -> tuple[bool, str]:
     """ Strict validation to ensure only legitimate, single retinal images are uploaded. """
-    avg_intensity = np.mean(img_arr)
-    if avg_intensity < 5:  # Changed from 2 to 5 to be slightly stricter on pure darkness
-        return False, "Image too dark. Please put a proper retinal image."
-    if avg_intensity > 130:  # Retinas are dark cavities. 130 mean intensity easily blocks white pages/documents.
-        return False, "Image too bright, invalid object. Please put a proper retinal image."
-        
-    # ── Color Spectral Integrity Check (Must be aggressively Red/Orange dominant) ──
     try:
+        avg_intensity = np.mean(img_arr)
+        if avg_intensity < 5:
+            return False, "Image too dark. Please provide a proper retinal scan."
+        if avg_intensity > 130:
+            return False, "Image too bright. Retinal fundus images are typically low-intensity cavities."
+            
+        # ── Color Spectral Integrity Check (Must be aggressively Red/Orange dominant) ──
         r_mean = np.mean(img_arr[:, :, 0])
         g_mean = np.mean(img_arr[:, :, 1])
         b_mean = np.mean(img_arr[:, :, 2])
         
-        # A true fundus image has a high concentration of red, far outpacing blue/green.
-        # If it's a document (grays, whites, generic colors), this easily flags it.
-        if (r_mean <= b_mean + 10) or (r_mean <= g_mean + 5):
-            return False, "Invalid image geometry/color. Please put a proper retinal fundus scan."
-    except Exception:
-        pass
-        
-    try:
+        # A true fundus image has a high concentration of red.
+        if (r_mean <= b_mean + 8) or (r_mean <= g_mean + 3):
+            return False, "Invalid color spectrum detected. Please provide a valid clinical fundus scan."
+
+        # Contour analysis to ensure circular eye shape
         gray = cv2.cvtColor(img_arr.astype(np.uint8), cv2.COLOR_RGB2GRAY)
         _, thresh = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -108,18 +119,26 @@ def is_retina_image(img_arr: np.ndarray) -> tuple[bool, str]:
         large_contours = [c for c in contours if cv2.contourArea(c) > (total_area * 0.05)]
         
         if len(large_contours) > 1:
-            return False, "Multiple structures detected. Please put a proper retinal image containing only ONE eye."
-            
+            return False, "Multiple retinal structures detected. Only one scan per analysis, please."
+        if len(large_contours) == 0:
+             return False, "No valid retinal structure found in the image frame."
+             
     except Exception as e:
-        pass
+        logger.warning(f"[VAL] Structural validation defaulted gracefully: {e}")
+        # Default to True if complex CV steps fail on high-noise images
+        return True, "Valid (Defaulted)"
         
     return True, "Valid"
 
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    contents = await file.read()
-    image = Image.open(io.BytesIO(contents)).convert("RGB")
+    try:
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
+    except Exception as e:
+        logger.error(f"[API] Failed to read image: {e}")
+        return {"success": False, "error": "Invalid image file format."}
     
     # ── SECURITY GATE ──
     raw_arr = np.array(image)

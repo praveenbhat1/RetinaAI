@@ -18,20 +18,18 @@ const TEAM = [
 ];
 
 const STATS = [
-    { value: "5.0M+", label: "SCANS_PROCESSED" },
     { value: "87.0%", label: "ACCURACY_ROC" },
     { value: "Instant", label: "DIAGNOSTIC_REPORT" },
-    { value: "150+", label: "CLINICAL_NODES" },
 ];
 
 export default function AboutPage() {
     return (
         <div className="flex-1 bg-white relative overflow-hidden font-body">
             {/* HUD Blueprint Grid */}
-            <div className="absolute inset-0 opacity-[0.02] pointer-events-none" 
-                style={{ backgroundImage: `linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)`, backgroundSize: '40px 40px' }} 
+            <div className="absolute inset-0 opacity-[0.02] pointer-events-none"
+                style={{ backgroundImage: `linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)`, backgroundSize: '40px 40px' }}
             />
-            
+
             <NeuralNetworkAnimation />
 
             {/* Hero / Protocol Header */}
@@ -54,7 +52,7 @@ export default function AboutPage() {
             {/* Stats / Metrics HUD */}
             <section className="py-16 relative">
                 <div className="container mx-auto px-6 max-w-5xl">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
                         {STATS.map((stat, i) => (
                             <motion.div key={i} {...fadeUp(i * 0.08)}
                                 className="text-center p-8 rounded-2xl bg-white border border-slate-100 shadow-xl shadow-slate-900/5 relative group"
@@ -84,7 +82,7 @@ export default function AboutPage() {
                                 INITIALIZE_PLAYBOOK <ArrowRight className="w-4 h-4" />
                             </Link>
                         </motion.div>
-                        
+
                         <motion.div {...fadeUp(0.15)} className="grid grid-cols-1 gap-3">
                             {[
                                 { icon: Microscope, title: "DEEP_LEARNING_CORE", desc: "Multi-layer CNN architecture trained on 5M+ clinical fundus scans." },
@@ -118,7 +116,7 @@ export default function AboutPage() {
                             Capture high-fidelity retinal fundus imagery using a standard consumer smartphone by following these validated medical imaging steps.
                         </p>
                     </motion.div>
-                    
+
                     <div className="grid md:grid-cols-4 gap-6">
                         {[
                             { step: "01", title: "AMBIENT_ISOLATION", desc: "Position the patient in a pitch-black room for 2-3 minutes to force natural pupil dilation without chemical drops." },
@@ -192,10 +190,10 @@ export default function AboutPage() {
                 <div className="container mx-auto px-6 max-w-4xl text-center">
                     <motion.div {...fadeUp()} className="p-16 rounded-3xl bg-slate-50 border border-slate-100 relative overflow-hidden">
                         {/* Blueprint grid on CTA */}
-                        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-                            style={{ backgroundImage: `linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)`, backgroundSize: '20px 20px' }} 
+                        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                            style={{ backgroundImage: `linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px)`, backgroundSize: '20px 20px' }}
                         />
-                        
+
                         <h2 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight uppercase">Ready to Start _Analysis?</h2>
                         <p className="text-slate-500 mb-10 text-lg font-medium max-w-xl mx-auto">Upload a fundus scan and receive your high-precision diagnostic report in seconds.</p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">

@@ -36,6 +36,11 @@ export interface AuthUser {
     name: string;
     email: string;
     role: UserRole;
+    licenseNumber?: string;
+    practiceType?: string;
+    hospitalName?: string;
+    clinicName?: string;
+    specialization?: string;
 }
 
 interface AuthContextType {
@@ -193,12 +198,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!db) return [];
         const q = query(collection(db, "users"), where("role", "==", "pending_doctor"));
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(d => ({
-            uid: d.id,
-            name: d.data().name,
-            email: d.data().email,
-            role: d.data().role as UserRole,
-        })) as AuthUser[];
+        return snapshot.docs.map(d => {
+            const data = d.data();
+            return {
+                uid: d.id,
+                name: data.name,
+                email: data.email,
+                role: data.role as UserRole,
+                licenseNumber: data.licenseNumber,
+                practiceType: data.practiceType,
+                hospitalName: data.hospitalName,
+                clinicName: data.clinicName,
+                specialization: data.specialization,
+            };
+        }) as AuthUser[];
     };
 
     const approveDoctor = async (uid: string): Promise<void> => {

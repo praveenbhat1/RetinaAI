@@ -214,7 +214,24 @@ export default function UploadCard({ doctorMode = false }: Props) {
                         if (doctorMode) {
                             docData.doctorId = auth.currentUser.uid;
                         }
+                        // Save to Firebase Firestore
                         addDoc(collection(db, "predictions"), docData).catch(console.error);
+
+                        // ── Also save to MongoDB via Node/Express backend ──
+                        fetch("http://localhost:5001/api/scans", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                userId: auth.currentUser.uid,
+                                userName: auth.currentUser.displayName || effectiveName || "Anonymous",
+                                userEmail: auth.currentUser.email || "",
+                                prediction: apiResult.prediction,
+                                confidence: apiResult.confidence,
+                                scanId: resolvedPatientId,
+                                imageSize: "300x300",
+                                processingTime: 0,
+                            }),
+                        }).catch(() => {}); // non-blocking, silent fail if Express is offline
                     }
 
                     setTimeout(() =>
